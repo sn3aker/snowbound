@@ -1,0 +1,1699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Documentation for Snowbound — Multiplayer Weather Director, an Unreal Engine 5.5–5.8 plugin: replicated weather, sky and seasons plus the Deformable Snow Kit.">
+<title>Snowbound — Multiplayer Weather Director · Docs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+</head>
+<body>
+<style>
+  :root {
+    --bg: #F3F6F9;
+    --surface: #FFFFFF;
+    --ink: #1A2532;
+    --muted: #56677A;
+    --accent: #2E6FA3;
+    --accent-ink: #235B88;
+    --line: #D9E2EB;
+    --code-bg: #EDF2F7;
+    --code-ink: #24435E;
+    --chip-bg: #E3EDF5;
+    --warn-bg: #FBF3E4;
+    --warn-line: #E8D5A8;
+    --header-a: #16283A;
+    --header-b: #2E5E86;
+    --header-ink: #EAF2F9;
+    --header-muted: #A9C3D8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E141C;
+      --surface: #161E29;
+      --ink: #DFE7F0;
+      --muted: #8FA0B3;
+      --accent: #6FAEE0;
+      --accent-ink: #8FC1EA;
+      --line: #24303E;
+      --code-bg: #1B2532;
+      --code-ink: #A8C6E0;
+      --chip-bg: #1E2C3B;
+      --warn-bg: #2A2418;
+      --warn-line: #4A3E24;
+      --header-a: #0B1420;
+      --header-b: #1D3D59;
+      --header-ink: #EAF2F9;
+      --header-muted: #8FAEC6;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E141C;
+    --surface: #161E29;
+    --ink: #DFE7F0;
+    --muted: #8FA0B3;
+    --accent: #6FAEE0;
+    --accent-ink: #8FC1EA;
+    --line: #24303E;
+    --code-bg: #1B2532;
+    --code-ink: #A8C6E0;
+    --chip-bg: #1E2C3B;
+    --warn-bg: #2A2418;
+    --warn-line: #4A3E24;
+    --header-a: #0B1420;
+    --header-b: #1D3D59;
+    --header-ink: #EAF2F9;
+    --header-muted: #8FAEC6;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    font-size: 16.5px;
+    line-height: 1.62;
+  }
+  h1, h2, h3, h4 {
+    font-family: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    line-height: 1.18;
+    text-wrap: balance;
+    margin: 0;
+  }
+  a { color: var(--accent-ink); text-decoration: none; }
+  a:hover, a:focus-visible { text-decoration: underline; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  code, pre {
+    font-family: "JetBrains Mono", Consolas, monospace;
+    font-size: 0.86em;
+  }
+  code {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    line-height: 1.55;
+  }
+  pre code { background: none; padding: 0; }
+  main p code, main li code { overflow-wrap: anywhere; }
+
+  /* ── Header band ── */
+  .site-header {
+    background: linear-gradient(135deg, var(--header-a), var(--header-b));
+    color: var(--header-ink);
+    padding: 44px 28px 38px;
+  }
+  .site-header .inner {
+    max-width: 1060px;
+    margin: 0 auto;
+  }
+  .site-header .kicker {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--header-muted);
+    margin: 0 0 10px;
+  }
+  .site-header h1 {
+    font-size: clamp(30px, 5vw, 44px);
+    font-weight: 700;
+    color: var(--header-ink);
+  }
+  .site-header .tagline {
+    margin: 12px 0 0;
+    max-width: 62ch;
+    font-size: 18px;
+    color: var(--header-muted);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .chip {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    padding: 4px 11px;
+    border: 1px solid rgba(255,255,255,0.28);
+    border-radius: 999px;
+    color: var(--header-ink);
+  }
+
+  /* ── Layout ── */
+  .wrap {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 34px 28px 80px;
+    display: grid;
+    grid-template-columns: 218px minmax(0, 1fr);
+    gap: 48px;
+    align-items: start;
+  }
+  nav.toc {
+    position: sticky;
+    top: 24px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  nav.toc .group {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 20px 0 6px;
+  }
+  nav.toc .group:first-child { margin-top: 0; }
+  nav.toc a {
+    display: block;
+    color: var(--muted);
+    padding: 3px 10px;
+    border-left: 2px solid var(--line);
+  }
+  nav.toc a:hover { color: var(--ink); text-decoration: none; }
+  nav.toc a.active {
+    color: var(--accent-ink);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+  main { min-width: 0; }
+  main > section { margin-bottom: 52px; scroll-margin-top: 24px; }
+  main p, main li { max-width: 72ch; }
+
+  h2 {
+    font-size: 27px;
+    font-weight: 700;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 18px;
+  }
+  h3 { font-size: 20px; font-weight: 600; margin: 28px 0 10px; }
+  .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin: 0 0 6px;
+  }
+  ul { padding-left: 22px; margin: 12px 0; }
+  li { margin: 6px 0; }
+  li::marker { color: var(--accent); }
+
+  .table-scroll { overflow-x: auto; margin: 16px 0; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 15px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  tr:last-child td { border-bottom: none; }
+  td:nth-child(2) { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* prose tables: second column is a sentence, not a default value */
+  table.prose td:nth-child(2) { white-space: normal; font-variant-numeric: normal; }
+  table.prose td:first-child { white-space: nowrap; color: var(--muted); }
+  table.vfx td:nth-child(2) { white-space: normal; font-variant-numeric: normal; }
+
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+  }
+  .callout.warn { border-left-color: #C9973B; background: var(--warn-bg); border-color: var(--warn-line); }
+  .callout p { margin: 0 0 8px; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .site-footer {
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 14px;
+    padding: 22px 28px 40px;
+  }
+  .site-footer .inner { max-width: 1060px; margin: 0 auto; }
+
+  @media (max-width: 820px) {
+    .wrap { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    nav.toc { position: static; columns: 2; }
+    nav.toc .group { break-after: avoid; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+</style>
+
+<header class="site-header">
+  <div class="inner">
+    <p class="kicker">Snowbound &middot; Documentation</p>
+    <h1>Multiplayer Weather Director</h1>
+    <p class="tagline">Server-authoritative, fully replicated weather, sky and seasons for Unreal Engine
+    &mdash; built multiplayer-first and winter-specialized, with a deformable snow ground that remembers.</p>
+    <div class="chips">
+      <span class="chip">v1.0.0</span>
+      <span class="chip">Unreal Engine 5.5 &ndash; 5.8</span>
+      <span class="chip">Win64</span>
+      <span class="chip">C++ &amp; Blueprint</span>
+      <span class="chip">2 runtime + 1 editor module</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="group">Weather Director</div>
+  <a href="#overview">Why this one</a>
+  <a href="#quick-start">Quick start</a>
+  <a href="#gameplay">Gameplay integration</a>
+  <a href="#randomizer">Ambient randomizer</a>
+  <a href="#saves">Save games</a>
+  <a href="#day-night">Day / night cycle</a>
+  <a href="#day-lighting">Day lighting &amp; HDR</a>
+  <a href="#night-sky">Night sky</a>
+  <a href="#clouds">Clouds</a>
+  <a href="#day-season">Day &amp; season length</a>
+  <a href="#season-cycle">The season cycle</a>
+  <a href="#wind">Wind &amp; realism</a>
+  <a href="#precip-render">Precipitation renderer</a>
+  <div class="group">Snow Kit</div>
+  <a href="#snow-kit">The two systems</a>
+  <a href="#object-tracks">Object tracks &amp; grab</a>
+  <a href="#ground-material">Ground material</a>
+  <a href="#ice-look">Procedural ice look</a>
+  <a href="#overlays">Rain &amp; dust overlays</a>
+  <a href="#nanite">Nanite displacement</a>
+  <a href="#slope">Slope-aware coverage</a>
+  <a href="#interaction-vfx">Interaction VFX</a>
+  <div class="group">Reference</div>
+  <a href="#events">Events &amp; hooks</a>
+  <a href="#api">Runtime API</a>
+  <a href="#user-settings">User settings</a>
+  <a href="#tooling">Support tooling</a>
+  <a href="#multiplayer">Multiplayer notes</a>
+  <a href="#limitations">Known limitations</a>
+  <a href="#support">Support &amp; licenses</a>
+</nav>
+
+<main>
+
+<section id="overview">
+  <h2>Why this one</h2>
+  <p>Snowbound ships as two runtime modules: <strong>SnowboundWeather</strong> (director, sky,
+  seasons, zones, rain/status/wind components) and <strong>SnowboundSnow</strong> (the Deformable
+  Snow Kit: render-target snow deformation plus geometric snow accumulation), plus the editor-only
+  <strong>SnowboundWeatherEditor</strong> (the <em>Set Up Level</em> wizard, editable weather
+  presets, Project Settings pages, and the cook rule that packages the runtime content). It supports
+  Unreal Engine 5.5, 5.6, 5.7 and 5.8 on Win64.</p>
+  <ul>
+    <li><strong>Multiplayer that actually works</strong> &mdash; server-authoritative state machine,
+      deterministic seeded transitions, late-join sync (weather, time of day, season, surface
+      wetness, ice), 2&nbsp;Hz coarse replication with local reconstruction. Drop it into a
+      listen-server game and every client sees the same storm.</li>
+    <li><strong>Weather as gameplay</strong> &mdash; replicated squall smoke-screens with a
+      sight-blocking query (<code>IsSightBlockedBySquall</code>) for AI, aim and UI; a
+      Beaufort-style severity API with a playability cap; per-location weather queries; wind hooks
+      for projectiles. Squalls respect weather zones (a calm valley spawns none; a rain zone inside
+      a snowstorm gets rain curtains), can carry a spatialized howl (<code>SquallSound</code>),
+      white the camera out while you stand inside one, and a rain curtain expiring in freezing air
+      leaves a flash-ice trail down its drift lane (<code>bSquallFlashIce</code>).</li>
+    <li><strong>A storm that escalates</strong> &mdash; past a severity threshold the zero-setup
+      snowfall hands off to a dedicated wind-torn blizzard system (<code>AutoBlizzardSystem</code>,
+      hysteretic swap, cross-faded), so a full gale reads as a whiteout, not as &ldquo;more
+      snowfall&rdquo; &mdash; and while the tier is engaged the wind bed plays louder and gusts
+      shake the camera harder. Opt-in: wire the blizzard system&rsquo;s wind link, then set
+      <code>BlizzardSeverityThreshold</code> (ships at 1.0 = off).</li>
+    <li><strong>A season cycle you can watch happen</strong> &mdash; the winter&harr;summer axis
+      drives the whole world: the blanket melts in islands off sun-facing slopes, ponds thin to
+      slush and open, trees bud and leaf out, grass colours in, puddles collect, footsteps turn
+      from snow to dirt and splashes &mdash; then autumn turns the leaves and the first flurries
+      whiten the ground again. What falls follows the air temperature, with a sleet band between.
+      Deterministic and replicated, so every client sees the same melt pattern. One flag pins the
+      ground to winter for a permanently wintry game.
+      (<a href="#season-cycle">details</a>)</li>
+    <li><strong>Winter specialization</strong> &mdash; ground-snow baseline and accumulation hooks
+      (<code>IBOSWeatherGroundResponder</code>), freezing-rain ice events, whiteout model.</li>
+    <li><strong>Precipitation that scales to the machine</strong> &mdash; falling snow and rain as
+      world Niagara or as a screen-space parallax sheet (one full-screen pass at any particle
+      count), chosen from Effects Quality or by the player and switchable mid-storm; quality tiers
+      up to an uncapped Cinematic, plus a Sequencer/photo-mode override stack.
+      (<a href="#precip-render">details</a>)</li>
+    <li><strong>A snow ground that remembers</strong> &mdash; footprints, impact craters, slide
+      trails, glazed ice and wind-sculpted drifts in a shared render target, plus geometric snow
+      piles that grow on props during a storm &mdash; all deterministic across the network with
+      zero per-deposit bandwidth.</li>
+    <li><strong>Localized weather</strong> &mdash; <code>BOSWeatherZone</code> volumes blend
+      viewer-local weather (fog, post, precipitation, wind, audio) &mdash; a calm valley inside a
+      blizzard &mdash; with deterministic per-location queries for game logic.</li>
+    <li><strong>A sky that lives</strong> &mdash; volumetric clouds that drift at real speeds under
+      a sky time-lapse, reshape per weather state and can be parked behind a landmark, a high
+      cirrus layer that shears against the deck, a moonlit night deck, physically lit days with
+      HDR exposure, and a procedural night sky &mdash; all replicated, so every player sees the
+      same clouds in the same place. (<a href="#clouds">details</a>)</li>
+    <li><strong>Set up in one click</strong> &mdash; <em>Tools &rarr; Snowbound: Set Up Level</em>
+      places or repairs the director, sun, sky light, atmosphere, fog and weather-reactive clouds;
+      <em>Create Editable Weather Presets</em> writes every built-in look as an asset to tweak.
+      (<a href="#quick-start">details</a>)</li>
+    <li><strong>In-editor preview</strong> &mdash; see any state at any hour live in the viewport,
+      no PIE (Details panel &rarr; Editor Preview; auto-stops on level save).</li>
+  </ul>
+</section>
+
+<section id="quick-start">
+  <h2>Quick start (5 minutes)</h2>
+<ol>
+<li>Enable the plugin, restart the editor.</li>
+<li><strong>Tools → Snowbound: Set Up Level</strong> places or repairs everything a weather level needs, in
+   one undoable step that is saved with the map: a Weather Director, a Movable sun at 75 000 lux
+   that is the atmosphere's sun light, a Movable sky light with real-time capture, a
+   SkyAtmosphere, an Exponential Height Fog and a VolumetricCloud with the weather-reactive
+   cloud material. Existing actors are kept and only fixed where needed (an existing cloud keeps
+   its material — see step 4). A notification lists what it changed. Skip to step 5.</li>
+<li>By hand instead: place a <strong>Snowbound Weather Director</strong> and assign your level's
+   <strong>Directional Light, Sky Light, Exponential Height Fog, Sky Atmosphere, Volumetric Cloud</strong>
+   actors in its Details panel (unassigned ones are auto-discovered — the first actor of each
+   class in the level).</li>
+<li>Cloud material: nothing to do — when the cloud's material does not read the weather
+   collection (the engine default <code>m_SimpleVolumetricCloud_Inst</code> renders a static sky), the
+   Director assigns <code>/SnowboundWeather/Materials/MI_VolumetricCloud</code> automatically, the moment
+   you assign the actor in the Details panel (persists with the level) or at BeginPlay for
+   auto-discovered clouds. All cloud weather (coverage, density, storm decks, weather fronts,
+   wind pan) lives in that material via <code>MPC_Weather</code>. Prefer to KEEP your own styled or
+   third-party sky material? Set the Director's <strong>Cloud Material Integration</strong> to
+   <em>Drive the existing material's parameters</em>: your material is kept and wrapped in a dynamic
+   instance, and the Director pushes coverage / density / storm / wind into the parameter
+   names you pick (<code>CustomCloud*Param</code>, defaults <code>CloudCoverage</code> / <code>CloudDensity</code> /
+   <code>StormClouds</code> / <code>WindVec</code>) — parameters your material lacks are simply ignored. <em>Warn only</em>
+   restores the old behaviour, and a material that already samples the weather collection is
+   never touched in any mode.</li>
+<li>Optional: assign per-state <strong>BOSWeatherPreset</strong> DataAssets (Presets map); states
+   without one use built-in defaults. <strong>Tools → Snowbound: Create Editable Weather Presets</strong>
+   writes one preset per built-in state (Clear … Thunderstorm) into <code>/Game/Snowbound/WeatherPresets</code>,
+   pre-filled with the built-in tuning, and assigns them to the level's Director — so you tweak
+   the shipped look instead of rebuilding it. Any preset asset can be reset the same way
+   (<em>Template State</em> + <strong>Load Built-In Values</strong>). Edits to a preset show immediately in PIE and in
+   the editor weather preview. Optional: point your materials at
+   <code>/SnowboundWeather/MPC_Weather</code> — or point the plugin at YOUR collection in
+   <strong>Project Settings → Plugins → Snowbound Weather</strong> (saved to <code>DefaultGame.ini</code>):
+   <code>ini
+   [/Script/SnowboundWeather.BOSWeatherSubsystem]
+   WeatherMPC=/Game/Path/To/YourMPC.YourMPC</code></li>
+<li>Play. The sun already cycles (day/night is on by default, a ten-minute day - see <em>Day /
+   night cycle</em>). Drive it from code/BP: <code>SetWeatherState</code>, <code>SetWeatherSchedule</code>, <code>SetSeasonLoop</code>,
+   <code>SetTimeOfDayTarget</code>, <code>ApplyHostOverrides</code> (lobby picks), zone volumes, severity queries.</li>
+</ol>
+<p>Or open <strong><code>/SnowboundWeather/Maps/Lvl_SnowboundDemo</code></strong> first: a fully wired level (director,
+landscape with the demo snow material, weather zones, a frozen pond, obstacle crates that
+collect snow piles) plus a runtime <strong>weather control panel</strong> (<code>BOSWeatherControlPanelActor</code>)
+you can also drop into your own map to flip states, hours and seasons while testing.</p>
+<div class="callout">
+<p><strong>Physical sun + Lumen:</strong> the presets drive a physically scaled sun (75 000 lux by day), so a
+white snow scene sits at EV 12–15 and the engine will warn that <em>"Cached lighting in Lumen …
+is going to be clipped"</em> with the default pre-exposure. Add to your <code>DefaultEngine.ini</code>:
+<code>ini
+[SystemSettings]
+r.EyeAdaptation.CachedLightingPreExposure=8   ; engine-recommended full physical range [-4, 16]</code></p>
+</div>
+</section>
+
+<section id="gameplay">
+  <h2>Gameplay integration</h2>
+  <p>Everything below derives from already-replicated inputs or level-static data, so the server
+  and every client compute the same answer &mdash; safe for game logic, not just for HUDs.</p>
+  <ul>
+    <li><strong>Temperature</strong> &mdash; <code>GetTemperatureCelsiusAtLocation</code> /
+      <code>GetTemperatureFahrenheit</code> / <code>IsFreezingAtLocation</code> /
+      <code>GetTemperatureBandAtLocation</code>. Three layers: the season axis plus a diurnal
+      swing; the active weather&rsquo;s <code>TemperatureOffsetC</code> (lerps through transitions
+      and blends through weather zones for free); and additive
+      <code>BOSTemperatureSourceComponent</code> point sources for campfires, forges and cold
+      cellars &mdash; plus an altitude lapse rate. Published to <code>MPC_Weather</code> as
+      <code>Temperature</code> for frost and breath-fog materials. Adds no replicated state.</li>
+    <li><strong>Actor weather status</strong> &mdash; drop a <code>BOSWeatherStatusComponent</code>
+      on any actor and it reports the weather, severity and temperature <em>where that actor
+      stands</em>, whether it is under cover (<code>IsOutdoors</code> /
+      <code>GetShelterFactor</code>, a throttled CPU trace), and how soaked it has become
+      (<code>GetExposureWetness</code>) &mdash; with dispatchers for shelter, local-weather and
+      temperature-band changes so you bind events instead of polling. Purely local, nothing
+      replicated.</li>
+    <li><strong>Wind</strong> &mdash; <code>GetWindVectorAtLocation</code> returns the effective
+      wind including the gust envelope and any zone override.
+      <code>BOSWindForceComponent</code> is the worked example: it pushes an actor&rsquo;s
+      simulating bodies downwind.</li>
+    <li><strong>Time of day</strong> &mdash; <code>OnHourChanged</code>, <code>OnSunrise</code>,
+      <code>OnSunset</code>, <code>OnDayNightChanged</code> and data-driven
+      <code>TimeTriggers</code> &rarr; <code>OnTimeTrigger(Tag)</code>. Sunrise and sunset follow
+      the real sun altitude rather than fixed hours. They fire on every machine, so client-side
+      lights and VFX react without any replication of their own, and a clock jump
+      (<code>SetTimeOfDay</code>, a host override, the first replication) does not machine-gun the
+      events it skipped &mdash; see <code>bFireEventsOnTimeJump</code>.</li>
+    <li><strong>Snow depth</strong> &mdash; <code>GetSnowDepthAtPosition</code> on the deformation
+      subsystem folds the render-target state and the geometric piles into one 0..1 answer, so
+      movement drag, footstep muffling or an item economy can read &ldquo;how deep am I?&rdquo;
+      with a single call.</li>
+  </ul>
+</section>
+
+<section id="randomizer">
+  <h2>Ambient weather without an authored timeline</h2>
+  <p>Set <code>bEnableWeatherRandomizer</code> and the server rolls new states from a weighted,
+  optionally season-biased distribution (<code>FBOSWeatherRandomizerConfig</code>) &mdash; seeded,
+  so a QA session is reproducible. Driver precedence is explicit: a manual
+  <code>SetWeatherStateManual</code> pick beats a running schedule, which beats the randomizer,
+  which beats the season&rarr;weather coupling. Rolls end in an ordinary
+  <code>SetWeatherState</code>, so nothing new goes on the wire and late joiners are already
+  handled. Default off &mdash; modes that drive weather deliberately must not have it changed
+  underneath them.</p>
+</section>
+
+<section id="saves">
+  <h2>Save games</h2>
+  <p><code>CaptureWeatherState()</code> returns one <code>FBOSWeatherSaveState</code> &mdash;
+  weather state and blend position, time of day <strong>and clock mode / day length</strong>, the
+  full season config <strong>plus the authored loop range</strong>, surface wetness, the schedule
+  playhead, the star seed, the randomizer&rsquo;s stream position, the wind override, the runtime
+  Custom preset, the season-row switches, a manual weather hold <strong>and the snow state</strong>
+  (accumulation level + pile reveal progress: piles regrow deterministically from the seed, so no
+  geometry is stored). Put it in your <code>USaveGame</code>; <code>RestoreWeatherState()</code>
+  puts it back, tells every <code>OnWeatherStateChanged</code> listener and forces an immediate
+  replication sync. The struct carries a <code>Version</code> (now 3); v1/v2 snapshots still
+  restore and leave the parts they lack untouched.</p>
+  <p><strong>A restore is a snapshot, not a suggestion.</strong> After a load the world stays where
+  the save left it until the next command: a held manual pick stays held, a paused clock stays
+  paused, a running cycle keeps sweeping the saved range, piles reappear rather than regrow. The
+  season&rarr;weather coupling fires again only at the next band crossing.</p>
+  <ul>
+    <li><strong>Partial loads</strong> &mdash; <code>RestoreWeatherStateEx(State, Mask)</code> /
+    <code>LoadWeatherFromSlotEx</code> take an <code>EBOSWeatherRestoreMask</code> bit set (Sky,
+    Time, Season, Snow, Wind, Randomizer, Schedule, Flags; 255 = all) and return an
+    <code>EBOSWeatherSaveResult</code> &mdash; a refused load is never a silent false.
+    <code>OnWeatherRestoredDispatcher</code> fires with slot, mask and result.</li>
+    <li><strong>Slots</strong> &mdash; <code>UBOSWeatherSaveLibrary</code>: save / load / list /
+    info / delete / exists, JSON export and import. <code>@</code> is a legal slot character.</li>
+    <li><strong>Persistence, zero setup</strong> &mdash; <code>bAutoSaveOnEndPlay</code> (+ periodic
+    <code>AutoSaveIntervalSeconds</code>) and <code>AutoLoadSlotName</code> are <code>Config</code>
+    (project default in <code>DefaultGame.ini</code>) and overridden per user by
+    <code>SetAutoSaveOnExit</code> / <code>SetAutoLoadSlot</code> (the panel&rsquo;s &ldquo;Remember&rdquo;
+    row). Auto slots are <code>&lt;name&gt;@&lt;Map&gt;</code> (<code>bAutoSlotsPerMap</code>), only a
+    slot saved on this map auto-loads (<code>bAutoLoadRequiresSameMap</code>), and
+    <code>ShouldAutoLoadNow</code> lets a game veto (explicit host picks win).
+    <code>QuickSave</code> / <code>QuickLoad</code> use <code>QuickSave@&lt;Map&gt;</code>.</li>
+    <li><strong>Console</strong> &mdash; <code>snowbound.Weather.Save | Load | List | Delete | Export |
+    Import | QuickSave | QuickLoad</code>; <code>snowbound.Weather.TraceRestore 1</code> logs every
+    weather-state change with its driver (on automatically for 10 s after a restore).</li>
+    <li><strong>Not saved, on purpose</strong> &mdash; footprints, craters, glaze, water-body freeze
+    state, per-user precip / lens settings, zone enable flags.</li>
+  </ul>
+</section>
+
+<section id="day-night">
+  <h2>Day / night cycle</h2>
+<p>On by default: a Director drives the sun angle and a day/night light curve from its clock, and a
+fresh level loops a full 24 h day in <code>DayLengthSeconds</code> (600 = a ten-minute day). The knobs live
+under <em>Snowbound &gt; Weather &gt; DayNight</em> on the Director:</p>
+<ul>
+<li><strong><code>bDayNightEnabled</code></strong> - the master switch. Off = the sun keeps the rotation and intensity it
+  was placed with and nothing below applies. Replicated; <code>SetDayNightEnabled</code> flips it at runtime.</li>
+<li><strong><code>TimeOfDayMode</code></strong> - <code>FullCycle</code> (default) loops 0..24 h, <code>Ranged</code> sweeps <code>StartHour</code>..<code>EndHour</code>
+  (<code>bPingPong</code> bounces instead of snapping back), <code>Static</code> holds <code>StartHour</code>.</li>
+<li><strong><code>StartHour</code> / <code>EndHour</code></strong>, <strong><code>bRandomizeStartHour</code></strong> (each match opens at a different hour),
+  <code>SunYawAxis</code> / <code>SunNoonPitch</code> (where the sun rises and how high it climbs), the optional
+  <code>MoonLightActor</code> (a SECOND Movable DirectionalLight for the night side), and the light curve
+  knobs (night floor, twilight band, sky-light multipliers).</li>
+</ul>
+<p>What the level needs: a <strong>Movable</strong> DirectionalLight (the Director forces Movable at runtime and
+warns; Stationary/Static lights silently reject rotation), a sky light (forced Movable and put on
+real-time capture so ambient and cloud lighting follow the sky every frame), and a sun intensity
+near <strong>75 000 lux</strong> - the curve scales relative to the placed intensity, so a 6-lux sun cycles
+between dim and dimmer.</p>
+<p>Runtime (authority, replicated): <code>SetTimeOfDay</code> (jump), <code>SetTimeOfDayTarget</code> (sweep to an hour
+and hold), <code>SetDayNightCycleRunning</code> (pause / resume the loop from the current hour),
+<code>SetDayLength*</code> (speed without moving the sun), <code>SetDayNightEnabled</code>. Calling any of the first
+three on a level that left the driver off switches it on - the control panel's <em>Cycle</em> box and
+day-length ladder rely on that. Sunrise / sunset / hour events: see <em>Events &amp; hooks</em>.</p>
+</section>
+
+<section id="day-lighting">
+  <h2>Day lighting &amp; HDR exposure</h2>
+<p>The day side of the cycle is lit physically, not by a fixed color ramp. Knobs under
+<em>Snowbound &gt; Weather &gt; DayNight &gt; Lighting</em> (all identity while <code>bDayNightEnabled</code> is off):</p>
+<ul>
+<li><strong><code>bSunColorFromAtmosphere</code></strong> (on) + <strong><code>AtmosphereSunTintStrength</code></strong> (0.8) - the sun's color
+  comes from the level Sky Atmosphere's transmittance for the current sun direction: white at
+  noon, golden through sunset (a built-in perceptual soften plus the 0.8 default keep the
+  horizon hue golden rather than physically deep red; raise toward 1 for the raw hue). No Sky
+  Atmosphere in the level (or knob off) falls back to the built-in analytic golden-hour tint.</li>
+<li><strong><code>SunsetFadeStartDeg</code></strong> (10) / <strong><code>NightFullAltitudeDeg</code></strong> (-8) - two-phase dusk: DIRECT
+  sunlight fades from 10° altitude to zero at the horizon, while ambient (sky light, fog,
+  night sky, moon, exposure) holds until geometric sunset and then eases to full night at -8°
+  (civil+nautical twilight) - light lingers after sundown instead of slamming to night.</li>
+<li><strong><code>TwilightTimeScale</code></strong> (0.5) - the clock runs at half speed through the twilight band
+  (raised-cosine, peak dwell near the horizon), so sunset and dawn stop racing on short game
+  days; 1 = off. The full day then takes slightly longer in real time than <code>DayLengthSeconds</code>.
+  Clients follow automatically via the replicated clock rate.</li>
+<li><strong><code>bDriveSkyLightColor</code></strong> (on) + <strong><code>NightSkyLightTint</code></strong> (0.60, 0.70, 1.00) - the sky light's
+  color blends from the authored color by day toward a cool blue-hour tint at night, so snow
+  reads moonlit instead of grey. The authored color is captured at BeginPlay and restored by
+  the editor preview's Stop.</li>
+<li><strong><code>FogSunsetTint</code></strong> (0.6) - height-fog inscattering warms toward the live sun color while the
+  sun is low (sunset haze); 0 keeps the preset fog color at all hours.</li>
+<li><strong><code>NightFogColorScale</code></strong> (0.12) - fog color brightness at deep night. Preset fog colors are
+  authored for daylight; without this, fog glows grey at midnight.</li>
+<li><strong><code>bDayExposureClamp</code></strong> (off) + <strong><code>DayAutoExposureMinEV</code></strong> (10) / <strong><code>DayAutoExposureMaxEV</code></strong>
+  (17) - the daytime counterpart of <code>bNightExposureClamp</code>: clamps the EV100 auto-exposure
+  window in daylight so a bright HDR sky neither greys out nor crushes the foreground. Sun-lit
+  snow meters at EV100 ≈ 15-17, so keep the ceiling at or above that - a lower ceiling forces
+  the camera brighter than the scene and blows the whites out. Both clamps compose into one
+  window lerped across the cycle; a side whose knob is off keeps the engine's wide-open
+  default there. On a fully auto-created scene (the Director had to spawn the sun and the
+  level has no PostProcessVolume) both clamps arm automatically for the session.</li>
+<li><strong><code>bDriveExposureBias</code></strong> (off) + <strong><code>ExposureBiasDay</code></strong> / <strong><code>ExposureBiasNight</code></strong> (0 / 0) -
+  drives post-process exposure compensation across the cycle: one-knob day/night mood grading,
+  independent of the window clamps.</li>
+<li><strong><code>bSkyLightRealTimeCapture</code></strong> (on) - the sky light's "HDR mode": per-frame real-time capture
+  while day/night runs, so ambient and volumetric-cloud lighting follow the live sky
+  continuously. Off = the cheap throttled 5 s recapture fallback for low-end targets (dawn/dusk
+  lighting steps return). A capture the level authored on is never forced off.</li>
+<li><strong><code>SkyLightDayBoost</code></strong> (1) - extra ambient multiplier at full day, fading to ×1 at night:
+  lifts midday ambient on snow without touching the authored night floor.</li>
+<li><strong><code>bDriveLowerHemisphere</code></strong> (off) + <strong><code>LowerHemisphereDayColor</code></strong> / <strong><code>LowerHemisphereNightScale</code></strong>
+  (0.05) - ground-bounce term: snow reflects most of the sky, but the engine default bounces
+  black from below. Opt-in because it visibly brightens the shaded side of everything.</li>
+<li>
+<p><strong><code>bAutoFixLowSunIntensity</code></strong> (off) - repairs the "always dark sky" trap: a sun authored far
+  below the ~75 000-lux physical reference (&lt; 2 000 lux) is raised to <code>ReferenceSunIntensity</code>
+  at startup instead of only logging a warning. A softer log line also flags suns outside the
+  plausible 20 000-200 000-lux daylight band.</p>
+</li>
+<li>
+<p><strong><code>bDriveAtmosphereScattering</code></strong> (on) - the Sky Atmosphere's Rayleigh scattering and
+  aerial-perspective view distance follow the weather and season: deep-blue crisp air with
+  sharp far ridges under a clear winter sky, grey washed-out light with close distance haze in
+  storms/rain/fog. The per-preset <code>RayleighScale</code> / <code>AerialPerspectiveScale</code> values are
+  multipliers on the level's authored atmosphere (presets left at 1.0 change nothing).</p>
+</li>
+</ul>
+<p>The Director also pushes the final day-lit sun color each tick as the <code>SunTintDay</code> MPC vector
+(RGB = tint, A = day factor) and, in <code>DriveCustomParams</code> cloud integration, to the
+<strong><code>CustomCloudSunTintParam</code></strong> material parameter (default <code>SunTint</code>) - hooks for
+sunset-colored cloud decks in both the plugin and kept third-party cloud materials.</p>
+</section>
+
+<section id="night-sky">
+  <h2>Night sky</h2>
+<p>The procedural dome material <code>M_NightSkyProc</code> draws stars, the Milky Way, a phase-correct moon
+and a 22° ice halo, driven per tick by the Director (celestial rotation, weather extinction,
+replicated star seed - every client sees the identical sky). Look tuning is scalar params on the
+material / an MI: <code>StarBrightness</code> (2), <code>StarDensity</code>, <code>StarTwinkle</code>, <code>MilkyWayIntensity</code> (0.25),
+<code>MoonMariaContrast</code>, <code>MoonHaloStrength</code> (0.10) / <code>MoonHaloWidth</code> (0.004), and <code>UseProceduralMoon</code>
+- a 0/1 <strong>mode switch</strong> (1 = the built-in phase moon; 0 is only for projects that draw their own
+moon dome - fractional values just dim the moon and leave a dark star-mask hole).</p>
+<p>Per-layer exposure trims (EV stops, 0 = neutral, +1 = twice as bright): <code>StarExposureEV</code>,
+<code>MilkyWayExposureEV</code>, <code>MoonExposureEV</code>, and <code>SkyExposureEV</code> for the whole dome - trim layers
+against each level's exposure setup instead of re-tuning the base look.</p>
+<p>Director knobs (<em>Snowbound &gt; Weather &gt; DayNight &gt; Night</em>):</p>
+<ul>
+<li><strong><code>MoonAngularSizeDeg</code></strong> (4.5) - apparent moon size; the real moon is 0.5°, 3-8° reads
+  "game-pretty", larger goes blurry.</li>
+<li><strong><code>bMoonlightFromPhase</code></strong> (on) + <strong><code>MoonlightLuxFull</code></strong> (0.25) / <strong><code>MoonlightLuxMin</code></strong> (0.02) -
+  the moon light's intensity follows the moon's phase (full = <code>MoonlightLuxFull</code>, half ≈ half of
+  it) and its altitude (horizon extinction), floored at <code>MoonlightLuxMin</code> so a new-moon night
+  stays playable. Off = the flat legacy <code>MoonIntensity</code>.</li>
+<li><strong><code>bNightExposureClamp</code></strong> (off) + <strong><code>NightAutoExposureMinEV</code></strong> (-4) / <strong><code>NightAutoExposureMaxEV</code></strong>
+  (1) - clamps the camera's EV100 auto-exposure window as night falls. Without it, eye adaptation
+  over a dark starfield either brightens the sky into structureless grey or - with a bright
+  foreground - crushes the stars to black. Opt in on levels that showcase the night sky; daylight
+  is untouched either way.</li>
+</ul>
+</section>
+
+<section id="clouds">
+  <h2>Clouds: reshape any preset, move the deck</h2>
+<p>Every weather state's clouds can be reshaped without touching its preset asset, and the whole
+deck can be slid or re-formed in place. Everything is owned by the Director, server-authoritative,
+replicated, and saved with the weather (snapshot v4, part of the <em>Sky</em> restore bit).</p>
+<ul>
+<li><strong>Per-preset cloud shape</strong> - <code>CloudShapeOverrides</code> (<em>Snowbound &gt; Weather &gt; Clouds &gt; Shape</em>): one
+  <code>FBOSCloudShape</code> per state; only its <strong>ticked</strong> fields replace the preset's values (coverage,
+  density, storm deck, contrast/puffiness, vertical growth, towers, base altitude, thickness, the
+  four species weights and their mix strength), so an override that only raises Overcast's
+  towers keeps following the preset for everything else. Runtime: <code>SetPresetCloudShape</code>,
+  <code>SetPresetCloudShapeField(State, Field, Value)</code>, <code>CopyPresetCloudShape(From, To)</code>,
+  <code>ResetPresetCloudShape</code> / <code>ResetAllPresetCloudShapes</code>, <code>GetPresetCloudShape</code> (effective) and
+  <code>GetPresetCloudShapeOverride</code>. Changes on screen morph in at <code>CloudShapeGlideSpeed</code> instead of
+  popping. <code>Custom (Code/BP)</code> is excluded - its params already are the custom values.</li>
+<li><strong>Placement</strong> (<em>Clouds &gt; Placement</em>): <code>CloudShiftKm</code> slides the deck and its ground shadows on
+  top of the wind drift (world X/Y, km) - author it to park a cloud bank behind a landmark;
+  <code>CloudReshape</code> (0..1, wraps) re-forms the fine cloud shapes in place, a shape seed. Runtime:
+  <code>SetCloudShift</code>, <code>SetCloudReshape</code>, <code>ResetCloudPlacement</code> (glide at <code>CloudPlacementGlideSpeed</code>,
+  or <code>bInstant</code>). The high cirrus layer is not moved.</li>
+<li><strong>Sky speed</strong>: <code>SetCloudTimeScale</code> (0 = the clouds stand still, 1 = real time, default 6).</li>
+<li><strong>Control panel</strong> - the <em>CLOUDS</em> section: pick the preset ("On screen" follows the weather),
+  sliders for the shape (orange = overridden), <em>Shape from</em> buttons (the built-in Wisps / Cumulus /
+  Deck / Towers / Storm clouds), Reset / Reset all, <em>Move X / Move Y</em>, <em>Re-form</em> + <em>Center</em>, and
+  <em>Sky speed</em> + <em>Still</em>.</li>
+<li><strong>Console</strong>: <code>snowbound.Clouds.Shape &lt;State&gt; &lt;Field&gt; &lt;Value&gt;</code>, <code>.Copy &lt;From&gt; &lt;To&gt;</code>,
+  <code>.Shift &lt;xKm&gt; &lt;yKm&gt; [instant]</code>, <code>.Reshape &lt;0..1&gt;</code>, <code>.Speed &lt;scale&gt;</code>,
+  <code>.Reset [State|shapes|placement|all]</code>, <code>.Dump</code>.</li>
+</ul>
+<p>In multiplayer the clients also adopt the host's accumulated cloud drift and sky speed, so a deck
+the host parked behind the castle sits there for everyone - including late joiners.</p>
+<h3>Cloud motion, layers and cost</h3>
+<p>Director knobs (<em>Snowbound &gt; Weather &gt; Clouds</em>):</p>
+<ul>
+<li><strong>Physical drift</strong> (<code>bCloudDriftPhysical</code>, on): the deck drifts at real speeds —
+  <code>CloudDriftCalmMps</code> (2 m/s at zero wind), plus <code>CloudDriftWindMps</code> (12) at full wind and
+  <code>CloudDriftGustMps</code> (4) at full gust. Turn it off to hand-tune the raw <code>CloudPan*Rate</code> units.</li>
+<li><strong>Sky time-lapse</strong> (<code>CloudTimeScale</code>, 6): drift and shape evolution run this many times faster
+  than real time while the day clock, seasons and schedule are untouched — 1 is strictly
+  realistic, 4–12 reads "alive but believable". <code>bCloudTimeFollowsDayCycle</code> additionally
+  multiplies it by the day cycle's time compression (capped at <code>CloudTimeScaleMax</code>, 30).</li>
+<li><strong>High cirrus</strong> (<code>bEnableCirrusLayer</code>, on): a cheap translucent dome above the volumetric deck,
+  panned slower (<code>CirrusPanScale</code> 0.4) and on a veered heading (<code>CirrusShearAngleDeg</code> 20°) so the
+  two layers visibly shear. It fades out as coverage closes past ~0.65, is spawned at BeginPlay
+  and never saved into the map. <code>CirrusLayerMaterial</code> takes your own sky layer.</li>
+<li><strong>Moonlit clouds</strong> (<code>bMoonLightsClouds</code>, on): the driven moon light becomes the atmosphere's
+  second sun, so the night deck receives moonlight instead of going pitch black.</li>
+<li><strong>Cost per quality tier</strong>: <code>CloudViewSampleCountScale</code> (2) and <code>CloudShadowViewSampleCountScale</code>
+  (1) set the volumetric sample counts; the Low and Medium precipitation tiers cap them
+  (<code>CloudLowViewSampleCap</code> 1, <code>CloudLowShadowSampleCap</code> 0.5, <code>CloudMediumViewSampleCap</code> 1.5,
+  <code>CloudMediumShadowSampleCap</code> 8 = no cap), and Low hides the cirrus dome unless
+  <code>bCloudLowCirrus</code> is set.</li>
+<li><strong>Look tuning at runtime</strong>: <code>SetCloudLookScalar(Param, Value)</code> writes a cloud-material scalar
+  (<code>CloudBaseDarkening</code>, <code>CloudAzimuthAmount</code>, <code>StormGlowAmount</code>, <code>CloudStreetAmount</code>,
+  <code>CloudSunTintAmount</code>, …) through a transient dynamic instance — the asset is never touched.</li>
+<li><strong>UE 5.5–5.7 only</strong> (<code>bFixVolumetricRTBeading</code>, on): those engines' default quarter-resolution
+  cloud reconstruction beads thin cloud filaments into dotted chains, so the Director switches
+  <code>r.VolumetricRenderTarget.Mode</code> from 0 to 1 at BeginPlay when the project left it at 0
+  (about +3 ms per frame at 2560×1440). It does nothing on 5.8, where mode 0 renders clean.</li>
+</ul>
+</section>
+
+<section id="day-season">
+  <h2>Day &amp; season length</h2>
+  <h3>Day length</h3>
+  <p><code>DayLengthSeconds</code> sets how much real time one in-game day takes. At runtime use
+  <code>SetDayLengthSeconds</code> / <code>SetDayLengthMinutes</code> /
+  <code>SetDayLengthPreset</code> rather than writing the property &mdash; the setters preserve
+  the current time of day and change only the speed, where a raw write teleports the sun (the
+  cycle&rsquo;s phase is stored in seconds against the old length, so halving the day would jump
+  the clock twelve hours). <code>EBOSDayLengthPreset</code> covers a real 24-hour day down to a
+  one-minute day, and <code>DayLengthForPreset</code> exposes the numbers so a settings menu
+  doesn&rsquo;t have to duplicate them. <code>ApplyHostOverrides</code> takes it as a fourth
+  parameter for lobby picks.</p>
+  <h3>Season length</h3>
+  <p><code>SeasonCycleDuration</code> is how long one winter&rarr;summer sweep takes (a bouncing
+  cycle returns to winter in twice that). At runtime use <code>SetSeasonCycleDuration</code> /
+  <code>SetSeasonCycleDurationMinutes</code>: they preserve the season&rsquo;s current phase
+  &mdash; a raw write jumps the season, and the season drives the weather state <em>and</em> the
+  landscape, so that jump is far more visible than a skipping sun. The setter also updates the
+  authored-duration snapshot, or the next <code>SetSeasonCycleRunning(true)</code> would restore
+  the level&rsquo;s original length and throw the choice away.
+  <code>SetSeasonRandomSegments</code> retunes the <code>SM_Random</code> wander instead; that
+  mode replays deterministically from its seed, so changing it re-derives the sequence and the
+  blend may step once. <code>ApplyHostOverrides</code> takes the sweep length as a fifth
+  parameter.</p>
+</section>
+
+<section id="season-cycle">
+  <h2>The season cycle</h2>
+  <p>With the winter pin off, the season axis drives the whole world &mdash; sky, ground, water,
+  foliage and daylight &mdash; in this order as the blend rises from deep winter (0) to high
+  summer (1) and back:</p>
+  <div class="table-scroll"><table class="prose">
+    <tr><th>Blend</th><th>What you see</th></tr>
+    <tr><td>0 &ndash; 0.2</td><td>deep winter: full blanket, frozen ponds and creeks, snow falls (sleet band near 0&nbsp;&deg;C from ~0.2)</td></tr>
+    <tr><td>0.2 &ndash; 0.5</td><td>spring: the blanket melts in islands (sun-facing slopes and edges first), prints and mounds fill fast, wet dark soil at the melt edge, the snow line rises, ice thins to slush and open water, trees bud (0.4+), precipitation turns to rain above +1&nbsp;&deg;C</td></tr>
+    <tr><td>0.5 &ndash; 0.9</td><td>meadow: grass colours in, puddles collect in rain, footsteps switch to dirt / grass / splash, full canopy by 0.75, long high-sun days</td></tr>
+    <tr><td>0.9 &ndash; 1</td><td>high summer</td></tr>
+    <tr><td>falling 0.8 &rarr; 0.3</td><td>autumn: leaves turn then drop, the evergreens dull, first flurries whiten the ground, water bodies freeze back below &minus;1&nbsp;&deg;C, days shorten</td></tr>
+  </table></div>
+  <p>Everything here is deterministic: replicated season state plus world-space noise, no
+  per-machine randomness, so two clients see the same melt pattern, the same puddles and the same
+  leaf drop. A manual weather pick made while the season is sweeping holds the weather state only
+  &mdash; the sweep itself (ground, ice, foliage, daylight) keeps running until the next season
+  command.</p>
+
+  <h3>What falls: snow, sleet or rain from the air temperature</h3>
+  <p>A weather state says whether and how hard it precipitates; the air says <em>what</em> falls.
+  With <code>bPrecipTypeFromTemperature</code> (on by default) it is snow below
+  <code>PrecipSnowBelowC</code> (&minus;1&nbsp;&deg;C), rain above <code>PrecipRainAboveC</code>
+  (+1&nbsp;&deg;C) and <strong>sleet</strong> in between &mdash; both precipitation systems run at
+  half density, surfaces get wet at half the rain rate, nothing accumulates. The type keeps its
+  band until the temperature is <code>PrecipTypeHysteresisC</code> past the boundary, and weather
+  zones resolve against the viewer-local temperature. So a Snowfall state in a warm spring falls
+  as rain and melts the blanket, and a summer shower turns to snow on a cold mountain night.
+  Freezing rain then needs rain or sleet at or below <code>FreezingRainMaxAirTempC</code>
+  (+2&nbsp;&deg;C). Materials get <code>PrecipIsSnow</code> as 1 / 0.5 / 0. With the flag off,
+  presets keep their authored type.</p>
+
+  <h3>Foliage by season</h3>
+  <p>Two scalars in <code>MPC_SnowDeformation</code> describe deciduous vegetation along the
+  season axis: <code>FoliageSeason</code> (0 bare &hellip; 1 full canopy) and
+  <code>FoliageColorShift</code> (0 green &hellip; 1 autumn colours). They are direction-aware:
+  rising, trees bud around blend 0.4 and are in full leaf by 0.75; falling, they turn colour below
+  0.8 and drop their leaves between 0.55 and 0.30. Drop
+  <code>Materials/MF_SnowboundSeasonFoliage</code> into your foliage master &mdash; feed it the
+  leaf colour, opacity and a per-leaf random (PerInstanceRandom, a vertex colour, a texture) and
+  take its <code>Color</code> / <code>Opacity</code> back. Leaves turn one by one and vanish one by
+  one, with no texture work. A matching <code>MF_SnowboundSeasonGround</code> carries the ground
+  side (snow &rarr; wet soil &rarr; grass) for host ground materials.</p>
+
+  <h3>Daylight by season</h3>
+  <p><code>bSeasonDrivesDaylight</code> (off by default, on in the demo) shapes the day with the
+  season: daylight lasts <code>WinterDaylightHours</code> (8) in deep winter and
+  <code>SummerDaylightHours</code> (16) in high summer, centred on noon with the 24&nbsp;h clock
+  unchanged, and the noon sun climbs to <code>SunNoonPitch</code> &times;
+  <code>WinterNoonPitchScale</code> (0.5) &hellip; <code>SummerNoonPitchScale</code> (1). Sunrise
+  and sunset events, the twilight band and the night sky follow the real horizon crossings;
+  <code>GetSunriseHour</code> / <code>GetSunsetHour</code> / <code>GetDaylightHours</code> report
+  the current day.</p>
+
+  <h3>Full cycle or winter-only cycle</h3>
+  <p>By default the season drives everything: below blend 0.5 the ground is snow, from 0.5 to 0.9
+  the grass comes back, the ground-snow baseline follows the same curve
+  (<code>BOSSeason::GroundCoverageForBlend</code>, also pushed as <code>SnowCoverage</code> /
+  <code>GrassCoverage</code> to both material collections), accumulation thaws above 0&nbsp;&deg;C
+  in every season and the summer half decays it to zero.</p>
+  <p>A game that wants <strong>&ldquo;snow all the time&rdquo;</strong> sets
+  <code>bWinterWeatherCycle = true</code> on its director (or project-wide in
+  <code>DefaultGame.ini</code> under
+  <code>[/Script/SnowboundWeather.BOSWeatherDirector]</code>): the season loop then cycles only the
+  sky and precipitation while the landscape stays at <code>WinterGroundBlend</code> (0 = deep
+  winter). Temperature &mdash; and with it the geometric pile melt &mdash; always follows the real
+  season. A snow shower in a warm season whitens the ground only in proportion to how wintry the
+  season still is (<code>SnowyWeatherFloor</code>). The control panel&rsquo;s
+  &ldquo;Season&nbsp;&rarr;&rdquo; row toggles precipitation-by-temperature and the season-shaped
+  daylight, and its Freeze / Thaw buttons force every placed water body solid or thaw all ice at
+  once for testing.</p>
+</section>
+
+<section id="wind">
+  <h2>Wind &amp; realism</h2>
+  <h3>Engine wind (foliage)</h3>
+  <p>The Director drives a <code>UWindDirectionalSourceComponent</code> from the live weather wind
+  (<code>bDriveEngineWindSource</code>, on by default), so every SpeedTree / WPO foliage asset in
+  the level sways with the storm and surges on gusts with no per-asset setup. If your level
+  already places its own wind source, turn this off &mdash; the engine sums wind sources rather
+  than replacing them. Assign <code>GustCameraShake</code> for a camera buffet on gust peaks (off
+  by default; scaled by gust peak &times; storm severity, and client-local since the gust clock is
+  already synced).</p>
+
+  <h3>Smoothed direction changes</h3>
+  <p>Raw wind targets can jump &mdash; a panel override, or a random per-state roll that lands
+  near a reversal. With <code>bSmoothWindChanges</code> (Director, <strong>Wind &rsaquo;
+  Realism</strong>, on by default) the displayed wind is a smoothed state instead: the yaw turns
+  toward the target at <code>WindTurnRateDegPerSec</code> (25&deg;/s &asymp; a 7&nbsp;s full
+  reversal), strength ramps at <code>WindStrengthRatePerSec</code>, and every consumer &mdash;
+  precip <code>WindForce</code>, foliage, cloud pan, snow drift, the upwind spawn-volume lead
+  &mdash; reads the smoothed wind, so a direction change is a visible turn, never a snap. Three
+  extras ride on it:</p>
+  <ul>
+    <li><strong>Reversal lull</strong> &mdash; while a swing bigger than
+      <code>WindLullStartAngleDeg</code> is in progress, strength eases toward
+      <code>WindLullFloor</code> (frontal-passage feel: the wind dies, veers, returns from the new
+      quarter). <code>WindLullFullAngleDeg</code> sets where the floor is reached.</li>
+    <li><strong>Idle meander</strong> &mdash; the settled wind wanders
+      &plusmn;<code>WindMeanderAmplitudeDeg</code> on two slow sines
+      (<code>WindMeanderPeriodSeconds</code>) driven by the replicated server clock, so it never
+      holds a laser-straight heading and all machines wander in step.</li>
+    <li><strong>Gust veer</strong> &mdash; each gust rolls a signed offset up to
+      <code>GustWindVeerMaxDeg</code> from its seeded stream and leans the wind by it for the
+      gust&rsquo;s duration &mdash; gusts arrive slightly off the mean direction, not just
+      louder.</li>
+  </ul>
+  <p>Clients smooth the replicated target locally with the same constants, so no extra bandwidth
+  is spent. Turn <code>bSmoothWindChanges</code> off to restore instant raw-target wind.</p>
+
+  <h3>Drift-wind lag (deposited snow has inertia)</h3>
+  <p>The smoothing above is the wind <em>itself</em> &mdash; particles, foliage and cloud pan
+  should follow it within seconds. Ground snow drifts are deposited <em>mass</em>: when the wind
+  veers, an existing lee pile must not swing around its obstacle in lockstep. With
+  <code>bLagDriftWind</code> (Director, <strong>Wind &rsaquo; Realism</strong>, on by default) the
+  snow kit feeds its drift material a separately lagged wind instead:</p>
+  <ul>
+    <li><strong>Direction</strong> creeps toward the live wind at
+      <code>DriftReorientRateDegPerSec</code> &times; strength (default 1.5&deg;/s &asymp; a
+      2-minute full reversal in a gale) and stops entirely below
+      <code>DriftTransportThreshold</code> &mdash; calm air moves no snow, so drifts freeze in
+      place.</li>
+    <li><strong>Amplitude</strong> builds with time constant <code>DriftAmplitudeBuildTime</code>
+      (90&nbsp;s) and decays with the longer <code>DriftAmplitudeDecayTime</code> (300&nbsp;s), so
+      piles linger after the wind dies.</li>
+    <li><code>DriftLiveWindFraction</code> (0.15) mixes a sliver of the instant gust/breeze
+      strength back in &mdash; a faint breathing instead of per-gust pile pulsing.</li>
+  </ul>
+  <p>The knobs are pushed to the ground responder at BeginPlay
+  (<code>ConfigureDriftWindLag</code>) with level-identical constants, so every machine lags in
+  step. Turn <code>bLagDriftWind</code> off to restore drift piles that track the instant wind
+  frame-for-frame.</p>
+</section>
+
+<section id="precip-render">
+  <h2>Precipitation renderer</h2>
+  <p>Two client-local settings decide how the <em>falling</em> snow and rain are drawn. Fog,
+  overlays, squalls, audio and the snow kit&rsquo;s accumulation are identical in every mode, so
+  none of this changes gameplay or what other players see.</p>
+
+  <h3>Mode</h3>
+  <p><code>snowbound.Precip.Mode</code> / <code>SetPrecipRenderMode</code> (static, Blueprint
+  callable). <strong>Auto</strong> follows the engine&rsquo;s Effects Quality (Low = screen-space
+  sheet, Medium and up = world Niagara). <strong>World</strong> is the default Niagara look.
+  <strong>Screen-space</strong> moves the falling snow and rain onto the lens post-process &mdash;
+  the same <code>M_LensPrecip</code> blendable that draws drops on the glass also draws a
+  three-layer parallax sheet of flakes and streaks, wind-slanted from the projected weather wind,
+  with a whiteout veil at blizzard severity, each layer hidden where the scene is closer than its
+  pseudo depth. That is one full-screen pass at any particle count and it is camera-agnostic, but
+  flakes never pass behind a tree. <strong>Off</strong> draws nothing. Every world precip emitter
+  the Director drives fades out over its particle lifetime while the sheet fades in (~1.5&nbsp;s),
+  so the mode can be switched mid-storm from an options menu.</p>
+
+  <h3>Density and quality tier</h3>
+  <p><code>snowbound.Precip.Density</code> / <code>SetPrecipDensity</code> is one multiplier on the
+  world spawn rate and on the screen sheet alike. <code>&lt;= 0</code> means Auto from the Effects
+  Quality (Low/Medium &times;0.5, High &times;0.75, Epic and up &times;1.0). Explicit values have
+  <strong>no upper cap</strong> &mdash; the user decides between performance and quality.</p>
+  <p><code>snowbound.Precip.Tier</code> / <code>SetPrecipQualityTier</code> sets how much and how
+  good the world particles are. <strong>Auto</strong> follows the Effects Quality;
+  <strong>Low / Medium / High</strong> set a density (&times;0.5 / &times;0.75 / &times;1.0) and a
+  live particle budget (the Director thins the spawn rate so the falling population holds it);
+  <strong>Cinematic</strong> has no caps (density &times;1.5, unlimited
+  budget, lit / collision / depth-of-field / motion-blur hints on) and lifts the Niagara quality
+  level to Cinematic for the whole process, so engine scalability cannot thin the effects behind
+  the user&rsquo;s back; <strong>Custom</strong> uses the stored knob block
+  (<code>SetCustomPrecipKnobs</code>). A tier can also select its own system set through the
+  Director&rsquo;s <code>TierSystemOverrides</code> map; unset slots fall back to the
+  <code>Auto*</code> defaults, and a tier switch cross-fades the follow emitters.</p>
+  <p>The knob block reaches every managed system as the Niagara user parameters
+  <code>User.MaxParticles</code>, <code>User.SpawnRadiusScale</code>, <code>User.LitFlakes</code>,
+  <code>User.Collision</code>, <code>User.DepthOfField</code>, <code>User.MotionBlur</code> and
+  <code>User.CullDistance</code>. Systems that do not declare them ignore them. The shipped systems
+  read only <code>User.Intensity</code> and <code>User.WindForce</code> (plus the landed-flake
+  handler); the hints are for systems you author or assign in <code>TierSystemOverrides</code>, so
+  with the shipped systems a tier changes density, budget and the Niagara quality level.</p>
+
+  <h3>Overrides and cost</h3>
+  <p><code>PushPrecipOverride(Mode, Tier, Priority)</code> / <code>PushPrecipKnobOverride</code> /
+  <code>PopPrecipOverride(Handle)</code> let photo mode, cutscenes and Sequencer force a renderer
+  and tier for a while without touching the user&rsquo;s saved settings; highest priority wins,
+  then the most recent. <code>GetPrecipCostReadout()</code> reports particles alive and systems
+  active over the Director-managed components, the tier and knob block in effect, and whether the
+  sheet is drawing (GPU time is not measured &mdash; use <code>stat gpu</code>). The demo panel
+  prints it under the Precip row.</p>
+
+  <div class="callout warn">
+  <p>All of this persists in <code>[SnowboundWeather]</code> of <code>GameUserSettings.ini</code>
+  (<code>PrecipRenderMode</code> 0..3, <code>PrecipDensity</code>,
+  <code>PrecipQualityTier</code> 0..5, <code>Custom*</code>) and is re-read by every Director at
+  BeginPlay. <strong>A game that attaches its own precipitation Niagara to the character must
+  check <code>ABOSWeatherDirector::IsWorldPrecipEnabled()</code></strong> in its
+  precipitation-changed handler &mdash; the Director re-broadcasts that notify on every flip, and a
+  system it does not own will otherwise keep raining in screen-space or Off mode.</p>
+  </div>
+
+  <p>The shipped falling and gust systems also carry the Niagara Effect Type
+  <code>NET_SnowboundPrecip</code>, whose per-quality spawn-count scale (Low 0.4, Medium 0.6, High
+  0.8, Epic/Cinematic 1.0) applies even in projects that never touch these settings; it stacks with
+  the density above. <code>NET_SnowboundPrecip_Uncapped</code> is the no-caps twin for Cinematic
+  system sets.</p>
+</section>
+
+<section id="snow-kit">
+  <p class="eyebrow">SnowboundSnow module</p>
+  <h2>The Deformable Snow Kit</h2>
+<p>Two cooperating systems, both driven by the weather and both deterministic in multiplayer:</p>
+<p><strong>Render-target deformation</strong> (<code>UBOSSnowDeformationSubsystem</code>, a world subsystem — no setup
+beyond materials): characters and objects stamp into a world-projected RT that your ground
+material samples — footprints, impact craters, slide trails, ragdoll craters, plus glazed-ice
+compaction, wind-drift scouring against an occlusion capture of your level, snowfall fill-in,
+and an exclusion mask (<code>ABOSSnowExclusionVolume</code> for interiors/overhangs). Characters get a
+<strong><code>UBOSSnowFootprintComponent</code> attached automatically</strong> (<code>bAutoAttachFootprints</code>, on by
+default): every <code>ACharacter</code> without one receives one at spawn, with foot sockets
+auto-detected per skeleton (mannequin <code>ball_l/r</code>, <code>foot_l/r</code>, Mixamo <code>*ToeBase</code>/<code>*Foot</code> —
+a warning names the character when none match). A character that carries its own component
+(Blueprint or C++) is never touched; tag a character <code>NoSnowFootprints</code> to opt out, point
+<code>AutoAttachFootprintClass</code> at your configured Blueprint subclass for custom pools, or add the
+component by hand as before. The component does the rest: per-foot animation-driven stamps
+(socket names configurable), stance depth (crouch/sprint), per-surface footstep sounds/VFX
+(<code>SurfaceFootstepData</code>), deep-snow drag and ice friction (replicated so movement stays in
+sync), and a spawn-settle stamp. The optional <code>IBOSSnowMoverState</code> interface on the owning
+actor feeds game-specific state (sliding, rolling, sprinting, large prints); everything
+defaults sensibly without it.</p>
+<p><strong>Geometric snow piles</strong> (<code>UBOSGeoSnowSubsystem</code>): metaball deposits meshed with marching cubes
+grow real geometry on crates, roofs and props while it snows — fed by the falling-snow Niagara
+particles, so drifts appear where and when flakes land — and carve when characters wade or
+projectiles hit. Positions are a pure function of a replicated seed and the shared accumulation
+budget: every machine grows identical snow with <strong>zero</strong> per-deposit bandwidth. Buildup is
+coverage-first — early snowfall skins whole surfaces with a thin film that deepens together as the
+storm banks accumulation — and every fresh cap is born inside its receiver and <strong>rises out of it
+every frame</strong> (the emergence rise: the remesh writes a per-vertex grow age into the mesh's vertex
+colors and <code>M_GeoSnow</code> sinks/raises the surface from it, so nothing pops in and nothing steps).
+Snow reaches prop edges: each deposit near a drop-off measures a <strong>polar edge profile</strong> (bisection
+support traces per sector) and the field clips the kernel there with a rounded lip that overhangs
+a few centimeters, never cantilevers. Deposits under eaves and overhangs stay a dusting (sky-shelter
+probes), windward edges scour thinner, edges fill in last, and fresh ragged snow smooths as it
+settles. Melt follows the temperature field (a campfire melts a local hole; peaks stay white),
+winter thaw slowly decays piles in clear weather, and save/restore rebuilds the field from the seed.
+A season switch to spring or summer melts the piles the same way, on the Director's shared melt
+clock (<code>SnowMeltCmPerDegSec</code>, default 0.01 → ~3.5 min for a 45 cm pile at +22 °C; the kit's own
+<code>MeltRadiusCmPerDegSec</code> applies only without a Director or with <code>bDriveGeoSnowMelt</code> off): the
+piles thin out with the ground as its snow islands open (the pile budget follows the visible
+ground, see <code>BudgetSource</code>) and recede on the local temperature, nothing is deleted with the
+footprints. Cold peaks above the snow line keep theirs.</p>
+<p><strong>Which surfaces collect piles.</strong> Piles grow on components with <strong>Static mobility</strong> and collision
+(object type WorldStatic or WorldDynamic — immobile props left on WorldDynamic, such as roofs, count
+too). Anything movable neither receives piles nor shelters what is beneath it, because a moving
+occluder would give each machine a different layout; a door or physics crate stays bare, and a
+movable roof does not keep snow out of the room below. Opt an actor out with the <code>NoGeoSnow</code> tag
+(<code>NoSnowTag</code>); the same tag on a single component opts out just that component, e.g. one foliage
+type or a tree's canopy mesh. Painted foliage does not receive piles by default
+(<code>bFoliageReceivesGeoSnow</code>), because a tree's simple collision is one coarse hull over the crown;
+the canopy still shelters the ground beneath it. Nothing settles where the local temperature is
+above <code>SettleMaxTempC</code> (0.5 °C), e.g. inside a campfire's radius.</p>
+<p>The buildup look is tunable on the subsystem (all <code>Config</code>, and — like every sampler knob —
+must match across machines except where noted):</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Knob</th>
+<th>Default</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bThicknessFromBudget</code></td>
+<td>on</td>
+<td>coverage-first master switch (off = legacy count-first reveal: full-thickness piles pop in one by one)</td>
+</tr>
+<tr>
+<td><code>BudgetSource</code> / <code>VisibleCoverStart</code> / <code>VisibleCoverEnd</code></td>
+<td>VisibleGround / 0.34 / 0.66</td>
+<td>what the piles (and the <code>SnowDustCover</code> dust overlay) grow and thin against. <code>VisibleGround</code> follows the landscape: effective depth (snowfall + season baseline) × the share of the ground still reading white, so a white winter map starts with standing prop snow, props frost over as the ground whitens and thin out as its snow islands open. <code>EffectiveDepth</code> ignores the cover; <code>AccumulationOnly</code> = props only from this session's snowfall (bare props on a white winter ground). The cover window mirrors the demo ground material's island mask — set End ≤ Start for a ground material without one</td>
+</tr>
+<tr>
+<td><code>FilmThicknessFraction</code> / <code>ThicknessBudgetGamma</code></td>
+<td>0.2 / 0.8</td>
+<td>dusting-film thickness at storm onset + the curve by which the blanket deepens as budget banks</td>
+</tr>
+<tr>
+<td><code>OnsetRevealBudget</code> / <code>OnsetRevealPerSecond</code></td>
+<td>0.06 / 0.7</td>
+<td>budget by which every surface is skinned (keep it above the budget where <code>M_SnowDustOverlay</code> has whitened surfaces, so geometry rises out of white) + reveal-rate cap in levels/s (machine-local pacing)</td>
+</tr>
+<tr>
+<td><code>ThicknessFloorCm</code></td>
+<td>18</td>
+<td>minimum slab thickness — keeps thin films from aliasing into washboard bands against the meshing lattice (1.5x <code>LodFarCellSize</code>)</td>
+</tr>
+<tr>
+<td><code>bEmergenceRise</code> / <code>EmergeDepthCm</code></td>
+<td>on / 7</td>
+<td>material-side rise of freshly meshed snow out of its receiver (needs <code>M_GeoSnow</code>'s vertex-color/parameter contract; machine-local cosmetics)</td>
+</tr>
+<tr>
+<td><code>GrowInSeconds</code> / <code>LifecyclePassSeconds</code></td>
+<td>60 / 0.75</td>
+<td>grow-in duration of a fresh pile; cadence of the coherent lifecycle re-mesh (the rise animates between passes)</td>
+</tr>
+<tr>
+<td><code>EdgeProbeCount</code> / <code>EdgeLipOverhangCm</code> / <code>EdgeLipWidthCm</code></td>
+<td>8 / 4 / 12</td>
+<td>edge-profile sectors (support-probe directions); lip overhang past the measured edge (scales with thickness) and the taper width of the rounded shoulder</td>
+</tr>
+<tr>
+<td><code>EdgeSupportDropFactor</code></td>
+<td>0.3</td>
+<td>how far below a deposit's plane (in radii) a probe hit still counts as support — lower drops are edges and get a lip, not a drape</td>
+</tr>
+<tr>
+<td><code>EdgeGrowDelayFraction</code></td>
+<td>0.35</td>
+<td>edge deposits start their grow-in this fraction of <code>GrowInSeconds</code> later — roofs whiten from the middle out</td>
+</tr>
+<tr>
+<td><code>ShelterThicknessMin</code> / <code>ShelterProbeHeight</code></td>
+<td>0.45 / 250</td>
+<td>thickness multiplier for a fully roofed-in deposit (five upward static probes of this length)</td>
+</tr>
+<tr>
+<td><code>WindScour</code></td>
+<td>0.6</td>
+<td>widens the lip taper on windward sectors by this x wind strength — exposed edges thin out first</td>
+</tr>
+<tr>
+<td><code>SettledNoiseFraction</code></td>
+<td>0.55</td>
+<td>field-noise amplitude at full thickness relative to the film stage — fresh snow ragged, settled snow smooth</td>
+</tr>
+<tr>
+<td><code>ClaimsPerCellPerTick</code></td>
+<td>2</td>
+<td>per-cell cap on flake claims per frame, so one dense emitter cannot fill a single cell while its neighbor stays bare</td>
+</tr>
+<tr>
+<td><code>FieldNoiseAmplitude</code> / <code>FieldNoiseScaleCm</code></td>
+<td>0.35 / 45</td>
+<td>ragged organic wobble on blob rims, hole edges and the blanket surface</td>
+</tr>
+<tr>
+<td><code>CandidateWarpAmplitude</code> / <code>CandidateWarpScale</code></td>
+<td>45 / 1400</td>
+<td>low-frequency warp of deposit positions — bends the sampling lattice into wavy drift chains</td>
+</tr>
+<tr>
+<td><code>CandidateRadiusNoise</code></td>
+<td>0.22</td>
+<td>low-frequency deposit-radius patchiness — whole pockets run deep or shallow together</td>
+</tr>
+<tr>
+<td><code>DepositRadiusMin</code> / <code>DepositRadiusMax</code></td>
+<td>40 / 75</td>
+<td>deposit blob radius range (cm). Never below ~1.5x <code>ThicknessFloorCm</code>: the floor then turns every pile into the same slab that cannot deepen (the subsystem warns at startup)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Ice</strong>: freezing-rain events stamp glaze during storms (replicated, with late-join replay), and
+level designers place <code>ABOSIceSpot</code> / <code>ABOSIceSpline</code> / <code>ABOSIceArea</code> actors for authored frozen
+ponds and paths; footfall compaction gradually polishes walked routes into slick ice.</p>
+<p><strong>Ice thaws, water freezes</strong> (season cycle): every ice pixel and the skate map thaw by
+<code>IceThawPerDegSec</code> (0.004 per °C above freezing per second — a glaze is a tenth of itself after a
+minute at +10 °C; 0 = the old permanent ice). <code>ABOSIceArea</code> / <code>ABOSIceSpline</code> are <strong>water bodies</strong>
+by default (<code>bWaterBody</code>; <code>ABOSIceSpot</code> is a plain glaze patch): solid at or below <code>FreezeStartC</code>
+(−1 °C), open water at or above <code>ThawEndC</code> (+2 °C), slush in between, freezing back over at
+<code>FreezeRatePerSec</code>. The ice render target carries ice in R and water in G; the demo ground
+material paints open water, slush and — from the rain wetness clock via the MPC scalar
+<code>GroundWetness</code> — puddles in the low spots of bare ground (<code>WaterColor</code>, <code>PuddleAmount</code>). Your own
+ground material gets the same by sampling <code>RT_SnowIce.g</code> (see "Hooking up your ground material").
+With the winter-only cycle (<code>bWinterWeatherCycle</code>) all of this is off: ice is permanent and the
+water channel is never written, exactly as before.</p>
+</section>
+
+<section id="object-tracks">
+  <h2>Object snow tracks &amp; physics grab</h2>
+<p>Add a <strong>Snowbound Object Snow Track</strong> component (<code>UBOSSnowObjectTrackComponent</code>) to any movable
+actor — a physics sphere, boulder, crate, vehicle — and it deforms the snow like a character
+does: a continuous berm-lipped furrow while it moves, a rest depression where it stops, and the
+carve is forwarded into the geometric prop snow automatically (rolling through a drift plows
+it). Track width auto-sizes from the collision bounds (<code>TrackWidthScale</code>); depth, speed scaling,
+stamp spacing and the elevated-structure gate are knobs on the component. Stamps only fire in
+actual ground contact, so thrown or carried objects never streak. Client-local cosmetics, same
+as footprints; it uses the batched stamp path, so many tracked objects stay cheap.</p>
+<h3>Physics grab (demo helper)</h3>
+<p>The <strong>Snowbound Physics Grab (Demo)</strong> component (<code>UBOSPhysicsGrabComponent</code>) lets a pawn pick up,
+carry and throw physics objects, the natural partner of the object snow track for testing: drag a
+crate through the blanket, throw it into a drift. It binds <code>GrabKey</code> (G, toggle) and <code>ThrowKey</code> (H)
+on the owning pawn by itself (<code>bAutoBindKeys</code>); turn that off and call <code>TryGrab</code>, <code>Release</code>,
+<code>ToggleGrab</code> and <code>ThrowHeld</code> from your own input. With <code>bAutoEnablePhysics</code> any movable prop
+becomes grabbable. Knobs: <code>GrabRange</code> (450 cm), <code>HoldDistance</code> (220 cm), <code>MaxGrabMassKg</code> (400,
+0 = no limit), <code>ThrowSpeed</code> (1400 cm/s, mass-independent).
+Multiplayer: grabbing runs where physics is authoritative (standalone or the listen-server
+player). A grabbed prop starts replicating, so clients see it carried and thrown and stamp its
+tracks; clients cannot grab themselves (there is no client-to-server grab request).</p>
+</section>
+
+<section id="ground-material">
+  <h2>Hooking up your ground material</h2>
+<p><strong>Deformable snow in one node.</strong> <code>Materials/MF_SnowboundDeformableGround</code> is the demo ground's
+entire deformation response as a drop-in function — no reverse-engineering <code>M_SnowGroundDemo</code>
+any more. Place one node in your ground/landscape master and take back four outputs:
+<strong><code>WPO</code></strong> (ADD to your WorldPositionOffset: blanket raise minus footprint/crater carve, plus
+berm walls and wind drift), <strong><code>Displacement</code></strong> (the same for Nanite tessellation, Z-scale
+compensated), <strong><code>Normal</code></strong> (world-space normal perturbed by carve/berm plus sastrugi micro
+relief — use world-space normals in the material, or transform it), and <strong><code>CarveMask</code></strong>
+(0..1 trample amount for darkening/wetting walked snow). It has NO inputs: everything is
+driven by <code>MPC_SnowDeformation</code> and the shared <code>/Runtime</code> render targets, <code>DeformationRT</code>
+binds automatically, and the demo's tuning (dent softness, sastrugi, slope/shelter behaviour)
+surfaces as material parameters on your material.</p>
+<p><strong>Season ground in one node.</strong> <code>Materials/MF_SnowboundSeasonGround</code> gives any ground or landscape
+master the demo's whole season behaviour: feed it your finished snow colour, roughness and
+tangent-space normal plus the ice render target sample (<code>RT_SnowIce</code> by the deformation world UV,
+R into <code>Ice</code>, G into <code>Water</code>), optionally your slope coverage and rock mask, and take back
+<code>BaseColor</code>, <code>Roughness</code>, <code>Normal</code> and <code>SnowMask</code>. It melts the blanket out in world-hash islands
+as <code>SnowCoverage</code> falls, paints soil and grass by <code>GrassCoverage</code>, darkens wet ground and forms
+puddles from <code>GroundWetness</code>, shows open water, slush and ripples where the water bodies thaw, and
+protects steep rock. Multiply your snow displacement, subsurface colour and a Subsurface / Default
+Lit shading-model switch by <code>SnowMask</code> so bare ground stays flat and lit like ground. Colour and
+patch-size inputs have defaults, only <code>SnowColor</code> needs wiring. Under the winter-only cycle the
+function is a pass-through.</p>
+<p>The subsystem renders into shared render-target assets under <code>/SnowboundWeather/Runtime/</code>
+(<strong>do not delete this folder</strong> — <code>Demo/</code> is safe to delete, <code>Runtime/</code> is not).
+<code>Maps/Lvl_SnowboundDemo</code> runs with YOUR project's game mode and pawn (a PlayerStart is
+included): any character pawn gets the footprint component auto-attached and walks straight
+out into the snow — no demo-specific pawn required. The demo
+material <code>M_SnowGroundDemo</code> is the worked example of sampling the deformation RT (carve +
+berm), the ice/water RT and the occlusion/drift mask together with <code>MPC_SnowDeformation</code> —
+or skip the example entirely and drop in <code>MF_SnowboundDeformableGround</code>. The pile RT is
+consumed by adding <code>PileRaise × PileMaxHeight</code> to your displacement, and the exclusion mask is maintained subsystem-side
+(<code>GetExclusionRT()</code>) — multiply your snow amount by its R channel if interiors should also
+be snow-free in YOUR material. To use your own pre-created
+assets instead — e.g. because your landscape material already samples your own RT — override
+the soft references in <code>DefaultGame.ini</code>:</p>
+<pre><code>[/Script/SnowboundSnow.BOSSnowDeformationSubsystem]
+RTAsset=/Game/Path/RT_SnowDeformation.RT_SnowDeformation
+SnowMPC=/Game/Path/MPC_SnowDeformation.MPC_SnowDeformation
+PileRTAsset=/Game/Path/RT_SnowPile.RT_SnowPile
+ExclusionRTAsset=/Game/Path/RT_SnowExclusion.RT_SnowExclusion
+OcclusionRTAsset=/Game/Path/RT_SnowOcclusion.RT_SnowOcclusion
+IceRTAsset=/Game/Path/RT_SnowIce.RT_SnowIce
+StandardLandscapeMaterial=/Game/Path/M_YourSnow.M_YourSnow
+</code></pre>
+<p>(<code>UBOSWeatherSubsystem</code> accepts the same kind of per-project config overrides for its tuning
+properties and collections.)</p>
+<p>Both subsystems also have a settings page: <strong>Project Settings → Plugins → Snowbound Snow
+Deformation</strong> (every key of the section above plus all ground-snow tuning: RT size/coverage,
+stamps, berms, accumulation, slope shedding, occlusion/drift, ice, piles) and <strong>Project Settings →
+Plugins → Snowbound Weather</strong>. They edit the same <code>DefaultGame.ini</code> sections, and a change applies
+to running PIE worlds right away (asset slots take effect on the next level load). <code>RTResolution</code>
+is used as configured (power of two, up to 16384) until a player picks a Snow Deformation quality
+in an options menu that writes <code>[SnowboundSnow] SnowDeformation</code> to GameUserSettings.</p>
+<p><strong>GeoSnow tuning</strong> has a real UI: <strong>Project Settings → Plugins → Snowbound GeoSnow</strong>
+(<code>UBOSGeoSnowSettings</code>, saved to <code>DefaultGame.ini</code> under
+<code>[/Script/SnowboundSnow.BOSGeoSnowSettings]</code>). Every deposit / sampler / coverage / melt / FX knob of
+the pile subsystem lives there; edits apply to running PIE worlds immediately and to every new world
+on creation. The old <code>[/Script/SnowboundSnow.BOSGeoSnowSubsystem]</code> section is no longer read for
+tuning - a warning on world init names stale keys so you can move them.</p>
+<p><strong>Packaging</strong>: the plugin's editor module adds its runtime content (<code>Effects/</code>, <code>Materials/</code>,
+<code>Runtime/</code> and the parameter collections) to every cook — the weather and snow systems load most
+of it by path, so nothing in your levels has to reference it. <code>Maps/</code> and <code>Demo/</code> ship only if
+your game references them. If a packaged game stops at <em>"Plugin 'SnowboundWeather' failed to load
+because module 'SnowboundWeather' could not be found"</em>, the project is Blueprint-only: add any C++
+class (<strong>Tools → New C++ Class</strong>) so the game target links the plugin's modules, and package again.</p>
+<p><strong>Procedural ice look</strong>: the demo material renders glazed ice fully procedurally (no textures) —
+a value-noise-broken snow/ice border, Voronoi crack cells, faint skate scratches, deep/shallow
+mottling with a grazing-angle sheen, view-twinkling snow sparkle and large-scale albedo
+variation, all inside one <code>SnowboundIceLook</code> Custom node. Tune via a Material Instance of
+<code>M_SnowGroundDemo</code> (<code>MI_SnowGroundDemo</code>):</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IceCutoff</code> / <code>IceSharpness</code></td>
+<td>0.30 / 0.20</td>
+<td>position + ramp width of the snow→ice border threshold</td>
+</tr>
+<tr>
+<td><code>IceNoiseScale</code> / <code>IceNoiseAmplitude</code></td>
+<td>450 / 0.12</td>
+<td>base tile (cm) + strength of the 7-octave fBm that displaces the border cutoff (grainy dissolve)</td>
+</tr>
+<tr>
+<td><code>IceEdgeWarp</code></td>
+<td>140</td>
+<td>world-space wobble (cm) of the ice edge — turns straight stamp edges into tongues</td>
+</tr>
+<tr>
+<td><code>IceRoughnessMin</code></td>
+<td>0.16</td>
+<td>roughness of clean glaze (cracks/mottle raise it)</td>
+</tr>
+<tr>
+<td><code>CrackScale</code> / <code>CrackStrength</code></td>
+<td>48 / 0.15</td>
+<td>crack cell size (cm) + brightness of crack lines</td>
+</tr>
+<tr>
+<td><code>SparkleTiling</code> / <code>SparkleStrength</code> / <code>SparkleFadeDistance</code></td>
+<td>6 / 0.06 / 900</td>
+<td>snow glint density (cm), intensity, camera fade (cm)</td>
+</tr>
+<tr>
+<td><code>MacroScale</code> / <code>MacroVariationStrength</code></td>
+<td>30000 / 0.12</td>
+<td>large-scale snow albedo variation</td>
+</tr>
+<tr>
+<td><code>IceDeepColor</code> / <code>IceShallowColor</code></td>
+<td>dark green-gray / frosty gray</td>
+<td>ice body gradient, mottled by noise</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Your own snow textures</strong> (group <em>Snow Surface</em>, same names on <code>M_SnowGroundDemo</code> and on the
+GeoSnow drift material <code>M_GeoSnow</code>): <code>SnowColor</code> and <code>SnowRoughness</code> (GeoSnow:
+<code>SnowColor</code> / <code>SnowShadeColor</code> / <code>SnowRoughnessMin</code> / <code>SnowRoughnessMax</code>) set the procedural
+look. Tick the static switch <strong><code>UseSnowTextures</code></strong> in a Material Instance to use authored maps
+instead — <code>SnowAlbedo</code> (× <code>SnowTextureTint</code>), <code>SnowRoughnessMap</code> (R channel, linear/Masks,
+blended by <code>SnowRoughnessMapStrength</code>) and <code>SnowNormal</code> (scaled by <code>SnowNormalStrength</code>),
+world-XY projected every <code>SnowTextureTilingCm</code> (300 cm) on shared wrap samplers. Use the same
+textures and tiling on both materials and drift tops continue the ground texture seamlessly.
+Footprints, berms, ice, wetness and season coverage keep working on top. With the switch off
+nothing extra is compiled. The light dusting on props (<code>M_SnowDustOverlay</code>) exposes <code>DustColor</code>,
+<code>DustRoughness</code>, <code>DustSpecular</code> and <code>DustOpacity</code>; the screen-space precipitation sheet in
+<code>M_LensPrecip</code> takes its flake atlas from the <code>SheetFlakeAtlas</code> texture parameter (2×2 flake frames, white on black, no alpha needed).</p>
+</section>
+
+<section id="ice-look">
+  <h2>Procedural ice look</h2>
+  <p>The demo material renders glazed ice fully procedurally (no textures) &mdash; a
+  value-noise-broken snow/ice border, Voronoi crack cells, faint skate scratches, deep/shallow
+  mottling with a grazing-angle sheen, view-twinkling snow sparkle and large-scale albedo
+  variation, all inside one <code>SnowboundIceLook</code> Custom node. Tune via a Material
+  Instance of <code>M_SnowGroundDemo</code> (<code>MI_SnowGroundDemo</code>):</p>
+  <div class="table-scroll"><table>
+    <tr><th>Parameter</th><th>Default</th><th>Meaning</th></tr>
+    <tr><td><code>IceCutoff</code> / <code>IceSharpness</code></td><td>0.30 / 0.20</td><td>position + ramp width of the snow&rarr;ice border threshold</td></tr>
+    <tr><td><code>IceNoiseScale</code> / <code>IceNoiseAmplitude</code></td><td>450 / 0.12</td><td>base tile (cm) + strength of the 7-octave fBm that displaces the border cutoff (grainy dissolve)</td></tr>
+    <tr><td><code>IceEdgeWarp</code></td><td>140</td><td>world-space wobble (cm) of the ice edge &mdash; turns straight stamp edges into tongues</td></tr>
+    <tr><td><code>IceRoughnessMin</code></td><td>0.16</td><td>roughness of clean glaze (cracks/mottle raise it)</td></tr>
+    <tr><td><code>CrackScale</code> / <code>CrackStrength</code></td><td>48 / 0.15</td><td>crack cell size (cm) + brightness of crack lines</td></tr>
+    <tr><td><code>SparkleTiling</code> / <code>SparkleStrength</code> / <code>SparkleFadeDistance</code></td><td>6 / 0.06 / 900</td><td>snow glint density (cm), intensity, camera fade (cm)</td></tr>
+    <tr><td><code>MacroScale</code> / <code>MacroVariationStrength</code></td><td>30000 / 0.12</td><td>large-scale snow albedo variation</td></tr>
+    <tr><td><code>IceDeepColor</code> / <code>IceShallowColor</code></td><td>&mdash;</td><td>ice body gradient (dark green-gray &rarr; frosty gray), mottled by noise</td></tr>
+  </table></div>
+</section>
+
+<section id="overlays">
+  <h2>Rain, wetness and snow dust overlays</h2>
+  <p><code>UBOSRainOverlaySubsystem</code> (configured by the Director, client-side cosmetic)
+  auto-applies a wet-surface overlay material to qualifying static and skeletal meshes while it
+  rains &mdash; drips, ripples, sheen, with per-character canopy drying (<code>GetExposure</code>)
+  &mdash; and a thin top-facing snow dusting on static meshes while session snow cover builds.
+  Zero per-asset authoring; tag components or actors <code>NoRainOverlay</code> to opt out. Kill
+  switch: <code>snowbound.Rain.Overlay 0</code>.</p>
+  <p>The droplet look is tunable without touching HLSL: create a Material Instance of
+  <code>M_RainOverlay_Skel</code> (characters) or <code>M_RainOverlay</code> (static meshes),
+  adjust <code>BeadSize</code> / <code>BeadDensity</code> / <code>DripWidth</code> (parameter
+  group &ldquo;Rain&rdquo;, 1.0 = default look), and assign it to the Director&rsquo;s
+  <code>RainOverlayMaterialSkeletal</code> / <code>RainOverlayMaterial</code> slot. If you author
+  a custom overlay material, drive any moving droplet phase from the MPC scalar
+  <code>RainAnimTime</code> &mdash; an intensity-integrated clock the subsystem pushes every frame
+  &mdash; instead of <code>Time &times; intensity</code>, so droplets never run backwards when the
+  rain intensity ramps during weather transitions.</p>
+</section>
+
+<section id="nanite">
+  <h2>Nanite landscape displacement (experimental)</h2>
+  <p>By default the ground deforms via WorldPositionOffset &mdash; supported everywhere and the
+  recommended mode. <code>LandscapeMode=1</code> renders the same height field through
+  <strong>Nanite programmable tessellation displacement</strong> instead: real geometric detail at
+  stamp edges instead of vertex-density-limited WPO. Flip it with the &ldquo;Nanite Land&rdquo;
+  checkbox on the control panel, <code>SetLandscapeMode(1)</code>, or the ini key; the choice
+  persists per user.</p>
+  <p><strong>Requirements</strong> (<code>SetLandscapeMode(1)</code> refuses with a log warning
+  when unmet):</p>
+  <ul>
+    <li>SM6 (DX12/Vulkan) on a Nanite-capable GPU &mdash; query
+      <code>IsNaniteLandscapeSupported()</code>.</li>
+    <li>The Landscape actor needs <strong>Enable Nanite</strong> checked and its Nanite data built
+      (build-time data; the demo map ships that way).</li>
+    <li><code>r.Nanite.Tessellation=1</code> &mdash; the subsystem raises it for you and puts the
+      previous value back when you switch off (set <code>bManageTessellationCVar=false</code> in
+      the subsystem config if your project manages Nanite cvars itself).
+      <code>r.Nanite.ProgrammableRaster</code> and <code>r.Nanite.ComputeRasterization</code>
+      (default 1) must also be on; the log names the culprit if displacement stays invisible.</li>
+  </ul>
+  <p><strong>Why the switch also flips <code>landscape.RenderNanite</code>.</strong> UE
+  hard-disables material WorldPositionOffset on landscape Nanite meshes (an engine rule, not ours)
+  &mdash; so on a Nanite-built landscape, WPO snow can only render through the
+  <em>traditional</em> landscape path. In Standard mode the subsystem therefore forces
+  <code>landscape.RenderNanite=0</code> (traditional path, WPO works) and in Nanite mode forces it
+  back to <code>1</code> (Nanite mesh, tessellation displacement works), re-evaluating each
+  landscape&rsquo;s rendering method on the spot. The cvar is only ever touched in worlds that
+  actually contain a Nanite-built landscape, and the value found beforehand is restored on
+  teardown (<code>bManageTessellationCVar=false</code> opts out &mdash; but then Standard mode on
+  a Nanite-built landscape <em>will</em> be flat unless you manage the cvar yourself).</p>
+  <p><strong>How the switch works &mdash; one material, no swaps.</strong> Ground materials gate
+  their two outputs on the <code>SnowboundNaniteActive</code> scalar in
+  <code>MPC_SnowDeformation</code> (0 or 1, pushed by <code>SetLandscapeMode</code>):</p>
+  <pre><code>WorldPositionOffset = &lt;your WPO height vector&gt; &times; (1 &minus; SnowboundNaniteActive)
+Displacement        = saturate(ComponentMask_Z(&lt;same vector&gt;) &divide; 128) &times; SnowboundNaniteActive</code></pre>
+  <p>The demo ground material is the worked example. Because the Displacement scalar derives from
+  the Z of the <em>final</em> WPO vector, both modes always show the identical height field
+  (carve, piles, wind drift, berms). <strong>The &divide;128 matters</strong>: the engine
+  saturates the Displacement input to 0&ndash;1 <em>before</em> scaling, so a raw centimeter
+  height would clamp to a featureless slab &mdash; normalize over your full height range (the kit
+  uses 128&nbsp;cm). Then set <em>Used with Nanite</em>, <em>Enable Tessellation</em> and
+  <em>Displacement Scaling</em>: Magnitude is in the mesh&rsquo;s local units, so full-scale
+  displacement of 128&nbsp;cm on a landscape with Z-scale <code>S</code> needs
+  <code>Magnitude = 128 / S</code> (the demo ships the value computed for its own landscape;
+  Center stays 0 &mdash; tune Magnitude to taste). A ground material <em>without</em> the gate
+  simply keeps its WPO path while the mode is active &mdash; nothing breaks; it just
+  doesn&rsquo;t tessellate.</p>
+  <div class="callout warn">
+    <p><strong>Known engine caveats</strong> (why this stays opt-in): UE 5.8 tessellation is
+    itself experimental &mdash; the subsystem defuses a known render-thread crash by zeroing the
+    gate and rebuilding landscape render state at world teardown, and stamp edges can show
+    faceting on tessellated landscapes (an engine artifact; a softer deformation-RT mip for the
+    displacement sample is the workaround if it bothers you).</p>
+  </div>
+</section>
+
+<section id="slope">
+  <h2>Slope-aware coverage (steep ground sheds snow)</h2>
+  <p>Real snow does not stay on steep ground. On smooth terrain the holding capacity collapses
+  between about 45&deg; and 60&deg; (the SnowSlide field model: 1.1&nbsp;m at 45&deg;,
+  0.45&nbsp;m at 60&deg;, 5&nbsp;cm above 75&deg;), a thin dusting still sticks to much steeper
+  rock, and rough faces keep snow on ledges to 70&ndash;80&deg;. The demo ground material models
+  exactly that from the landscape&rsquo;s vertex normal &mdash; no extra textures, no baked masks,
+  identical in Standard and Nanite mode:</p>
+  <ul>
+    <li><strong>Holding window</strong> &mdash; full blanket up to <code>SnowSlopeFullDeg</code>
+      (45), bare rock from <code>SnowSlopeBareDeg</code> (60). The threshold is jittered by
+      world-space noise (<code>SnowSlopeNoiseDeg</code>, <code>SlopeNoiseScaleCm</code>) so the
+      snow line never reads as a cut, even on coarse 1&nbsp;m landscapes whose vertex normals
+      carry no micro-relief.</li>
+    <li><strong>Dusting</strong> &mdash; while the blanket is thinner than
+      <code>DustingDepthCm</code>, the bare angle sits at <code>SnowDustingHoldDeg</code> (75) and
+      retreats to 60&deg; as the storm deepens it; thaw brings it back out. A first snowfall
+      whitens the cliffs, a deep blanket slides off them.</li>
+    <li><strong>Benches</strong> &mdash; contour-aligned ledges (<code>BenchSpacingCm</code>,
+      <code>BenchStrength</code>) keep snow striped across faces past the bare angle, the way real
+      rock faces stay white to 80&deg;.</li>
+    <li><strong>Wind aspect</strong> &mdash; lee slopes hold more, windward slopes are scoured
+      (<code>SlopeWindBias</code>), from the same lagged drift wind the wall drifts read, so a wind
+      reversal re-sculpts the hills over the smoothed turn.</li>
+    <li><strong>Rock</strong> &mdash; albedo and roughness fade to a procedural rock look
+      (<code>SteepRockColor</code>, <code>RockVariation</code>, <code>RockRoughness</code> on the
+      material instance) <code>SlopeColorFeatherDeg</code> before the height reaches zero;
+      footprints, berms and the deformation normal all scale with the holding factor, so nothing
+      carves or shades on bare rock.</li>
+    <li><strong>Snow line</strong> (Director, <em>Snow Line</em> category, off by default) &mdash;
+      with <code>bDriveSnowLineFromTemperature</code> the Director derives the altitude where its
+      lapse-rate temperature model crosses <code>SnowLineTemperatureC</code> (sea level = the
+      Director&rsquo;s Z, see <code>AltitudeLapseRateCPerKm</code>) and the ground below that line
+      sheds its snow across <code>SnowLineBandCm</code>; a season or weather change moves the line
+      at <code>SnowLineSmoothingRate</code> instead of snapping it.
+      <code>bSnowLineOverride</code> / <code>SetSnowLineOverride</code> pin it to a world Z.</li>
+    <li><strong>Sun-aspect melt</strong> (Director, <code>AspectMeltStrength</code>, off by
+      default) &mdash; slopes facing the sun lose their cover first once the air at the viewer is
+      warmer than <code>AspectMeltStartC</code>, reaching full strength
+      <code>AspectMeltRangeC</code> above it. Night or a sun below the horizon melts nothing. Both
+      terms derive from replicated or level-static inputs, so every machine agrees.</li>
+  </ul>
+  <p>The slope knobs live on <code>UBOSSnowDeformationSubsystem</code> (Config, <em>Slope</em>
+  section; <code>SetSnowSlopeAngles</code> at runtime, also on the control panel) and are pushed
+  to <code>MPC_SnowDeformation</code> &mdash; like the sampler knobs they must match across
+  machines. The Director pushes the snow line, sun direction, air temperature and melt knobs into
+  the same collection through the ground responder (<code>SetTerrainMeltParams</code>), so a
+  ground material binds one collection. The CPU follows the same model:
+  <code>GetSlopeHold</code> (slope only) and <code>GetTerrainHold</code> (slope &times; snow line
+  &times; sun aspect), <code>GetSnowDepthAtPositionOnSlope</code>,
+  <code>GetVisualSnowHeightAtOnSlope</code>. The footprint component feeds the movement
+  component&rsquo;s cached floor normal into them, so on a rock face (or below the snow line)
+  there is no drag, no muffled footstep and no print, furrow, crater or trail
+  (<code>SlopeStampHoldMin</code>); the plain <code>GetSnowDepthAtPosition</code> keeps its
+  flat-ground meaning but does respect the snow line.</p>
+  <p><strong>Your own ground material.</strong> Evaluate the holding factor in one Custom node
+  from <code>VertexNormalWS</code> and <code>WorldPosition</code> (vertex-shader legal: no
+  <code>ddx/ddy</code>, no <code>PixelNormalWS</code>) and multiply your base rise, pile and berm
+  terms by it; lerp albedo/roughness to your rock by <code>1 &minus; hold</code>; in the Nanite
+  branch keep the <code>&times; saturate(VertexNormalWS.z)</code> factor described above. For the
+  snow line multiply by <code>smoothstep(SnowLineZ &minus; SnowLineBandCm, SnowLineZ +
+  SnowLineBandCm, WorldPosition.z)</code> (skip when <code>SnowLineZ &le; &minus;1e8</code>), for
+  the sun aspect by <code>1 &minus; saturate(dot(N, SunDirToSun)) &times;
+  saturate((AirTemperatureC &minus; AspectMeltStartC) / AspectMeltRangeC) &times;
+  AspectMeltStrength</code>. The demo master is the worked example (nodes tagged
+  <code>SnowboundSlope*</code>). An <code>MPC_SnowDeformation</code> copied before these scalars
+  existed keeps working slope-blind, with one log warning naming what to add.</p>
+</section>
+
+<section id="interaction-vfx">
+  <h2>Interaction VFX (Niagara per snow interaction)</h2>
+  <p>Every snow interaction the footprint component detects can spawn any number of Niagara
+  systems, and everything about those spawns is data on the component
+  (<code>Snowbound|Snow|VFX</code>) &mdash; no code:</p>
+  <div class="table-scroll"><table class="vfx">
+    <thead><tr><th>Interaction</th><th>Fires</th><th>Strength (0..1)</th><th>Event location</th></tr></thead>
+    <tbody>
+      <tr><td><code>Footstep</code></td><td>once per foot plant</td><td>print depth (speed &times; stance)</td><td>planted foot, on the ground</td></tr>
+      <tr><td><code>SprintKick</code></td><td>once per sprint plant</td><td>print depth</td><td>the scuff behind the foot</td></tr>
+      <tr><td><code>DeepSnowPlow</code></td><td>every tick while the swing foot is submerged (&ldquo;pushing snow&rdquo;)</td><td>foot submersion</td><td>swing foot, on the ground</td></tr>
+      <tr><td><code>Slide</code> / <code>Roll</code></td><td>every tick while sliding / rolling</td><td>speed vs <code>VFXFullSpeed</code></td><td>feet</td></tr>
+      <tr><td><code>Landing</code></td><td>once per air&rarr;ground</td><td>fall speed (<code>LandingMinSpeed</code>..<code>LandingMaxSpeed</code>)</td><td>feet</td></tr>
+      <tr><td><code>RagdollImpact</code></td><td>once per body slam</td><td>impact (<code>RagdollImpactMinSpeed</code>..<code>MaxSpeed</code>)</td><td>tracked bone</td></tr>
+      <tr><td><code>RagdollDrag</code></td><td>every tick while the body skids</td><td>speed vs <code>VFXFullSpeed</code></td><td>tracked bone</td></tr>
+      <tr><td><code>Spawn</code></td><td>once, when the spawn-settle stamp lands</td><td>1</td><td>feet</td></tr>
+      <tr><td><code>Custom</code></td><td>only from <code>TriggerSnowInteractionVFX</code> (projectile hits, anim notifies&hellip;)</td><td>yours</td><td>yours</td></tr>
+    </tbody>
+  </table></div>
+  <p><code>InteractionVFX</code> lists all of them; each entry holds <code>Emitters</code>, and
+  each <strong>emitter</strong> is one spawn rule: <code>Systems</code> (random pick),
+  <code>CountMin</code>/<code>CountMax</code> + <code>Chance</code> (how many),
+  <code>Anchor</code> (event location, actor feet/centre, left/right/both feet, planted/swing
+  foot) + <code>Offset</code> in the travel frame (X forward, Y right, Z up) +
+  <code>ScatterRadius</code>/<code>ScatterHeight</code> (where), <code>Rotation</code> (world,
+  face travel, yaw-only, actor facing, random yaw, floor-normal up) +
+  <code>RotationOffset</code> + <code>RandomYaw</code>, <code>Scale</code> +
+  <code>ScaleRandom</code> + <code>ScaleAtMinStrength</code> (how big), gates
+  (<code>MinStrength</code>, snow-depth window, <code>SurfaceFilter</code>,
+  <code>IceFilter</code>, <code>MaxDistance</code>), and for the continuous interactions the
+  cadence: pooled bursts every <code>Interval</code> seconds and/or <code>Spacing</code> cm of
+  travel, or <code>bLooping</code> to hold one looping component open with the parameters
+  refreshed live. Each spawn receives the <code>Strength</code>, <code>SnowDepth</code> and
+  <code>Velocity</code> user parameters (names on the component) plus any
+  <code>ExtraFloatParams</code>.</p>
+  <p>Share one table across the cast with a <code>UBOSSnowInteractionVFXPreset</code> data asset
+  in <code>VFXPreset</code>; the component&rsquo;s own entries add to it, or replace it per
+  interaction (<code>bOverridePreset</code>), and <code>bEnabled</code> per interaction silences
+  everything for it. Performance knobs: <code>VFXCountScale</code> (per component) &times; the
+  subsystem&rsquo;s <code>FootprintVFXScale</code> (options-menu density,
+  <code>SnowVFXScale</code> in <code>[SnowboundSnow]</code>), <code>VFXCullDistance</code> to the
+  local camera, <code>MaxVFXSpawnsPerTick</code>, and <code>bDebugSnowVFX</code> logs every
+  spawn. The classic per-surface pool (<code>SurfaceFootstepData</code>, one random puff per
+  footstep / landing / ragdoll impact) and the <code>SlideVFX</code> / <code>RollVFX</code> /
+  <code>WadeVFX</code> quick slots still work unchanged and run through the same machinery.
+  GeoSnow&rsquo;s settle puff has matching <code>SettlePuffChance</code> /
+  <code>SettlePuffScale</code> / <code>SettlePuffMaxPerTick</code> config.</p>
+  <div class="callout">
+    <p><strong>Shipped defaults.</strong> <code>Effects/NS_SnowPuff</code> (a soft snow-dust puff
+    that rises, spreads and settles) and <code>Effects/NS_SnowSpray</code> (kicked-up clumps thrown
+    along the travel direction, plus a little dust) are one-shot bursts &mdash; their emitters loop
+    once, so the pooled component is released the moment the last particle dies.
+    <code>Runtime/DA_SnowInteractionVFX</code> is a ready-made preset wiring them into every
+    interaction (puff on each footstep, spray on sprint kicks / plowing / slides / landings /
+    impacts, everything scaled by strength and spaced by travel). <strong>It is applied
+    automatically</strong>: every footprint component whose <code>VFXPreset</code> is empty uses
+    the subsystem&rsquo;s <code>DefaultVFXPreset</code> (empty = this asset), so adding the
+    component is the only setup. Assign your own preset per component (it always wins), point
+    <code>DefaultVFXPreset</code> at yours in <code>DefaultGame.ini</code>
+    (<code>[/Script/SnowboundSnow.BOSSnowDeformationSubsystem]</code>), or set
+    <code>bUseDefaultVFXPreset=false</code> there to opt out. The effects are lit and deliberately
+    restrained &mdash; white dust over sun-lit snow reads as a haze &mdash; so raise
+    <code>Scale</code> / <code>CountMin</code> / <code>CountMax</code> in a copy of the preset if
+    you want more. Both systems are
+    built from Epic&rsquo;s Niagara module scripts only and read no user parameters; the component
+    still pushes <code>Strength</code> / <code>SnowDepth</code> / <code>Velocity</code> for
+    systems that do.</p>
+  </div>
+</section>
+
+<section id="events">
+  <p class="eyebrow">Reference</p>
+  <h2>Events &amp; hooks</h2>
+  <ul>
+    <li><code>OnWeatherStateChanged</code> / <code>OnPrecipitationChanged</code> (C++ + BP)
+      &mdash; bind gameplay or audio to state and precipitation edges instead of polling.</li>
+    <li>Director BP events: <code>OnThunderStrike(Location, Intensity)</code> (server-rolled,
+      synced, with distance-delayed audio), <code>OnFreezingRain</code>,
+      <code>OnWeatherGust</code>, <code>OnWeatherParamsUpdated</code>.</li>
+    <li><code>OnSnowWadeTick(Character)</code> &mdash; fires at the footprint component&rsquo;s
+      cadence while a character wades through deep snow; bind your foliage rustle/bend system
+      here.</li>
+    <li><code>OnOcclusionPixelsReady</code> &mdash; a CPU copy of the occlusion mask after each
+      capture, for AI systems (cover points, &ldquo;snowed-in&rdquo; queries). Self-gating: the
+      readback is skipped entirely while nothing is bound.</li>
+    <li><code>UBOSSnowFootprintComponent::PlaySoundOverride</code> &mdash; route footstep
+      one-shots through your own audio helper (volume sliders, custom attenuation) with one static
+      assignment.</li>
+  </ul>
+</section>
+
+<section id="api">
+  <h2>Runtime API quick reference</h2>
+<p>Everything below is BlueprintCallable; state mutators are server-authoritative.</p>
+<ul>
+<li><strong>Day / night</strong> (<code>ABOSWeatherDirector</code>): <code>SetDayNightEnabled</code>, <code>SetDayNightCycleRunning</code>,
+  <code>SetTimeOfDay</code>, <code>SetTimeOfDayTarget</code>, <code>SetDayLengthSeconds</code> / <code>Minutes</code> / <code>Preset</code>,
+  <code>GetTimeOfDay</code>, <code>IsDayNightEnabled</code>, <code>IsDayNightCycleRunning</code>, <code>GetSunriseHour</code> /
+  <code>GetSunsetHour</code> - see <em>Day / night cycle</em>.</li>
+<li><strong>Clouds</strong> (<code>ABOSWeatherDirector</code>): <code>SetPresetCloudShape</code> / <code>SetPresetCloudShapeField</code> /
+  <code>CopyPresetCloudShape</code> / <code>ResetPresetCloudShape</code>, <code>SetCloudShift</code>, <code>SetCloudReshape</code>,
+  <code>ResetCloudPlacement</code>, <code>SetCloudTimeScale</code>, <code>SetCloudLookScalar</code> - see <em>Clouds: reshape any
+  preset, move the deck</em>.</li>
+<li><strong>Physics grab</strong> (<code>UBOSPhysicsGrabComponent</code>): <code>TryGrab</code>, <code>Release</code>, <code>ToggleGrab</code>, <code>ThrowHeld</code>,
+  <code>IsHolding</code>.</li>
+<li><strong>Stamps &amp; carving</strong> (<code>UBOSSnowDeformationSubsystem</code>): <code>StampDeformation</code>, <code>DrawTrail</code>,
+  <code>ClearDeformationStamps</code> — wire your own projectiles, abilities or vehicles into the
+  deformation RT. Geo piles (<code>UBOSGeoSnowSubsystem</code>): <code>AddSnowBlob</code>, <code>CarveSnow</code>,
+  <code>ClearAllSnow</code>; RT-side pile helpers: <code>StampPile</code>, <code>AddPileHeightCm</code>, <code>ClearPileAt</code>.</li>
+<li><strong>Ice</strong> (<code>UBOSSnowDeformationSubsystem</code>): <code>AddIcePatch</code>, <code>AddIceBox</code> (plus the
+  <code>ABOSIceSpot</code> / <code>ABOSIceArea</code> / <code>ABOSIceSpline</code> placement actors), <code>SetIceEnabled</code>,
+  <code>SetIceFillRate</code>, <code>SetIceVisualScale</code>, <code>SetFootfallIceEnabled</code>, <code>GetIceLevelAtPosition</code>.</li>
+<li><strong>Accumulation</strong>: the Director starts the clock in BeginPlay (<code>bStartSnowAccumulation</code>,
+  <code>SnowAccumulationSeconds</code>); the rate is 0 until weather is active and then follows the state
+  (Clear 0x, Snowfall 1x, Blizzard 2.5x). A map without a Director grows no snow and no prop
+  piles — the snow kit's <code>bAutoStartAccumulation</code> (off) is only for kit-only setups that drive
+  the rate themselves. <code>StartAccumulation</code> / <code>StopAccumulation</code> / <code>ResetAccumulation</code>,
+  <code>SetAccumulationEnabled</code>, <code>SetAccumulationRateMultiplier</code>, <code>SetMaxAccumulationLevel</code>,
+  <code>SetGroundSnowBaseline</code>, <code>GetAccumulationLevel</code>.</li>
+<li><strong>Track reading</strong>: <code>UBOSSnowFootprintComponent::GetRecentTracks(MaxAgeSeconds)</code> returns the
+  recent footprint trail (position/direction/age) — feed AI trackers or "follow the
+  footprints" gameplay.</li>
+<li><strong>Quality at runtime</strong>: <code>SetQuality</code> (RT resolution), <code>SetLandscapeMode</code>,
+  <code>SetFootprintTickInterval</code>, <code>SetFootprintVFXScale</code> (snow VFX density) — apply options-menu
+  changes live (same semantics as the <code>[SnowboundSnow]</code> ini keys below).</li>
+<li><strong>Interaction VFX</strong>: <code>UBOSSnowFootprintComponent::TriggerSnowInteractionVFX(Interaction,
+  Location, Strength, Velocity)</code> fires an interaction's emitters from game code (e.g. <code>Custom</code> for
+  a projectile hit); <code>StopAllSnowVFX</code> ends held-open sprays.</li>
+<li><strong>Shelter/occlusion</strong>: <code>CaptureOcclusion()</code> re-captures the overhead shelter mask on demand
+  (e.g. after a roof is destroyed; the first capture is automatic), and
+  <code>SetOcclusionCaptureOrientation</code> (0–3 = 90° steps) if your ground material samples the mask
+  with a different UV convention.</li>
+<li><strong>Wind on projectiles</strong>: <code>UBOSWeatherSubsystem::SetGustDriftEnabled(true)</code> opts in-flight
+  projectiles into gust drift (default OFF — leave off for precision/competitive modes).</li>
+<li><strong>Control panel</strong>: <code>ABOSWeatherControlPanelActor.bManageInputMode</code> (default on) makes the
+  panel clickable while the player walks around (Game+UI input mode); disable it if your game
+  manages input modes itself.</li>
+</ul>
+</section>
+
+<section id="user-settings">
+  <h2>User settings (GameUserSettings.ini)</h2>
+  <p>The snow kit reads a <code>[SnowboundSnow]</code> section from
+  <code>GameUserSettings.ini</code>, designed to be written by an in-game options menu:
+  <code>SnowDeformation</code> (0=off, 1=2K, 2=4K, 3=8K RT), <code>SnowAccumulation</code> (0/1),
+  <code>SnowReactionRate</code> (0&ndash;3 &rarr; footprint tick rate),
+  <code>SnowVFXScale</code> (0..4 multiplier on every snow-interaction Niagara count; 0 = none),
+  <code>LandscapeMode</code> (0=WPO, 1=Nanite displacement &mdash; experimental), plus hand-tuning
+  keys <code>StampIntensity</code>, <code>RTWorldSize</code>, <code>StampEdgeSoftness</code>.</p>
+</section>
+
+<section id="tooling">
+  <h2>Support tooling</h2>
+  <ul>
+    <li>Log categories <code>LogSnowboundWeather</code> / <code>LogSnowboundSnow</code> (and
+      <code>LogGeoSnow</code> for pile internals) &mdash; filter or silence the plugin
+      cleanly.</li>
+    <li>Development builds ship console commands <code>snow.Geo.Drop / Stress / Carve / Clear /
+      Stats / Probe / Depth</code>. <code>snow.Geo.Probe</code> answers &ldquo;why does this mesh
+      get no snow?&rdquo; by tracing your aim through the exact sampler filter chain and logging
+      which gate accepts or rejects the surface. All stripped from Shipping builds.</li>
+    <li><code>stat GeoSnow</code> shows pile counts, remesh cost and in-flight async work.</li>
+    <li>Live tuning CVars (present in all builds, including Shipping):
+      <code>snowbound.Rain.Overlay</code>, <code>snow.Geo.Enabled</code>,
+      <code>snow.Geo.CellSize</code>, <code>snow.Geo.Deposit</code>,
+      <code>snow.Geo.DepositRadius</code>, <code>snow.Geo.MaxRemeshPerFrame</code>,
+      <code>snow.Geo.MaxTracesPerTick</code>. In multiplayer, keep
+      <code>snow.Geo.Enabled</code> / <code>CellSize</code> / <code>Deposit</code> identical on
+      every machine &mdash; they change the deterministic pile layout (the performance caps are
+      safe to vary per machine).</li>
+  </ul>
+</section>
+
+<section id="multiplayer">
+  <h2>Multiplayer notes</h2>
+<p>All state mutators are server-authoritative (client calls are ignored with a warning).
+Late joiners reconstruct weather/time/season/wetness and replay recent ice events.
+Cloud-shape overrides, cloud placement, the accumulated cloud drift and the sky speed replicate,
+so every machine renders the same deck in the same place.
+Squall banks replicate as spawn records; positions derive from the synced server clock.
+Geometric snow accumulation is deterministic <strong>per plugin version</strong>: run the same plugin
+build (and the same <code>snow.Geo.*</code> tuning values) on every machine in a session, or pile
+layouts will diverge between host and clients.</p>
+</section>
+
+<section id="limitations">
+  <h2>Known limitations</h2>
+<ul>
+<li><strong>No splitscreen</strong>: viewer-local effects (zones, squall culling, splash anchoring) assume a
+  single local player.</li>
+<li><strong>Dedicated servers</strong> run the state machine, severity and replication but skip all cosmetics
+  (sky driving, audio, VFX).</li>
+<li><strong>Ground deformation is projected straight down</strong> (world X/Y): prints stretch on very steep
+  slopes, and walls or the underside of overhangs cannot carry them. The geometric prop snow is
+  real geometry and has no such limit.</li>
+<li><strong>Physics grab is host-only</strong>: standalone or the listen-server player grabs; clients see the
+  result but cannot grab.</li>
+<li><strong>Blueprint-only projects</strong> need any C++ class before packaging, so the game target links the
+  plugin's modules (see <em>Packaging</em> under the Snow Kit).</li>
+<li><strong>Nanite landscape displacement</strong> (<code>LandscapeMode=1</code>) is experimental and off by default:
+  UE's tessellation is itself experimental (teardown crash defused by the subsystem, edge
+  faceting possible — see the Nanite section above). The standard WPO path is the supported
+  mode.</li>
+<li><strong>No audio assets ship.</strong> The Director exposes five ambience slots (wind, rain, drip,
+  winter, summer) and the footprint component a per-surface footstep table — assign your own
+  sounds; everything is silent until you do. The ground-state pools (water, wet ground, bare
+  ground) are silent until filled too.</li>
+<li><strong>Bare ground is procedural.</strong> The demo ground material paints soil, grass and puddles from
+  world-space noise and colour parameters — no grass or soil textures ship. Drive your own
+  ground textures from the <code>SnowCoverage</code> / <code>GrassCoverage</code> / <code>GroundWetness</code> scalars and the
+  ice render target's R (ice) and G (water) channels.</li>
+<li><strong>Winter-only projects</strong> set <code>bWinterWeatherCycle</code> (see "Full cycle or winter-only cycle"):
+  ground, ice thaw, water bodies, temperature-resolved precipitation and foliage all hold their
+  winter values; only the weather states cycle.</li>
+<li>The rain ripple decal was authored with Substrate enabled; it is verified working in a
+  non-Substrate project, but if your project renders it oddly, please report it.</li>
+</ul>
+</section>
+
+<section id="support">
+  <h2>Support &amp; licenses</h2>
+  <p>Support: <a href="mailto:amin@bastani.at">amin@bastani.at</a>. Please include your engine
+  version, the plugin version from the descriptor, and &mdash; for snow-kit questions &mdash; the
+  output of <code>snow.Geo.Probe</code> where relevant.</p>
+  <p>Asset provenance and licenses ship with the plugin in <code>Docs/Licenses.md</code>: all C++
+  source and content is original work &copy; Inntertainment; the volumetric-cloud materials
+  reference Epic engine textures and the Niagara systems are built from Epic&rsquo;s own Niagara
+  plugin module scripts, both distributed with Unreal Engine per the Unreal Engine EULA. No
+  third-party marketplace content is included.</p>
+</section>
+
+</main>
+</div>
+
+<footer class="site-footer">
+  <div class="inner">Snowbound &mdash; Multiplayer Weather Director &middot; &copy; 2026
+  Inntertainment &middot; Built for Unreal Engine 5.5 &ndash; 5.8</div>
+</footer>
+
+<script>
+  (function () {
+    var links = document.querySelectorAll('nav.toc a');
+    var map = {};
+    links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+    var current = null;
+    try {
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && map[e.target.id]) {
+            if (current) current.classList.remove('active');
+            current = map[e.target.id];
+            current.classList.add('active');
+          }
+        });
+      }, { rootMargin: '-10% 0px -70% 0px' });
+      document.querySelectorAll('main > section').forEach(function (s) { obs.observe(s); });
+    } catch (err) { /* scrollspy is optional */ }
+  })();
+</script>
+</body>
+</html>
