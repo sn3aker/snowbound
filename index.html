@@ -305,6 +305,7 @@
   <a href="#ice-look">Procedural ice look</a>
   <a href="#overlays">Rain &amp; dust overlays</a>
   <a href="#nanite">Nanite displacement</a>
+  <a href="#shadows">Landscape shadows</a>
   <a href="#slope">Slope-aware coverage</a>
   <a href="#interaction-vfx">Interaction VFX</a>
   <div class="group">Reference</div>
@@ -1365,6 +1366,60 @@ Displacement        = saturate(ComponentMask_Z(&lt;same vector&gt;) &divide; 128
     faceting on tessellated landscapes (an engine artifact; a softer deformation-RT mip for the
     displacement sample is the workaround if it bothers you).</p>
   </div>
+</section>
+
+<section id="shadows">
+  <h2>Landscape shadows (virtual shadow maps)</h2>
+  <p>Snow that grows, drifts and melts keeps changing the geometry the sun shadows were cached
+  against, and the kit manages the three places where that goes wrong out of the box.</p>
+  <p><strong>Shadow freshness on displaced snow.</strong> Virtual shadow maps cache pages
+  aggressively, and the engine never invalidates them for landscape <em>Displacement</em> changes
+  (landscape Nanite components run with WPO evaluation forced off, and material-driven
+  invalidation only looks at WPO) &mdash; so with a stationary sun, a melt or season change would
+  leave whole pages shadowing the <em>old</em> snow surface: stale dark blocks with staircase
+  edges, often with bright footprint-shaped holes where prints had carved the old surface down.
+  In Nanite landscape mode the snow subsystem fixes this automatically:</p>
+  <ul>
+    <li>While the snow height is changing <strong>fast</strong> (a melt, a season jump,
+      <code>SnapSnowToFull</code>) the sun&rsquo;s shadow cache is invalidated every frame, so
+      shadows track the surface smoothly &mdash; the same cost as a moving sun, released one
+      second after the height settles.</li>
+    <li>During <strong>slow</strong> change (ordinary storm accumulation) it uses cheap stepped
+      refreshes instead: the landscape&rsquo;s shadow pages and Lumen surface-cache cards refresh
+      after every &ge;&nbsp;2&nbsp;cm of effective height change, at most twice a second.</li>
+  </ul>
+  <p>Set <code>bRefreshNaniteShadowsOnSnowChange=false</code> in the subsystem config to opt out
+  (for example if your project already forces
+  <code>r.Shadow.Virtual.Cache.ForceInvalidateDirectional</code> itself). The cvar value found
+  before the kit&rsquo;s write is restored when it lets go and on teardown. Standard (WPO) mode
+  needs none of this &mdash; the engine invalidates WPO shadows itself.</p>
+  <p><strong>Weather-driven penumbra.</strong> Shadow softness is a property of the light, not
+  the material: the Director lerps the sun&rsquo;s <code>LightSourceAngle</code> between
+  <code>SunSourceAngleClear</code> (2.5&deg;) and <code>SunSourceAngleOvercast</code> (8&deg;)
+  with cloud coverage, so crisp winter-sun shadows soften as a front moves in
+  (<code>bDriveSunSourceAngle</code> to opt out). Writes are hysteresis-gated at 0.25&deg;
+  &mdash; each <code>LightSourceAngle</code> write throws away the whole VSM cache, so a finer
+  step would re-render every shadow several times per second during a weather transition. The
+  Director also drives the sun&rsquo;s screen-space contact shadows
+  (<code>bDriveSunContactShadows</code>, <code>SunContactShadowLength</code> in Nanite mode /
+  <code>SunContactShadowLengthStandard</code> for WPO) for micro self-shadowing in snow
+  relief.</p>
+  <p><strong>Recommended project settings.</strong> The demo project ships these in
+  <code>Config/DefaultEngine.ini</code> under <code>[SystemSettings]</code>; they are
+  project-wide render settings, so the plugin does not force them:</p>
+  <pre><code>; Wider Director-driven sun source angles need more SMRT rays to stay noise-free
+r.Shadow.Virtual.SMRT.RayCountDirectional=12
+r.Shadow.Virtual.SMRT.SamplesPerRayDirectional=6
+; Nanite culling buffers: a tessellated snow landscape can overflow the defaults, which
+; drops geometry patches from the shadow pass for a frame (shadow blocks blink). Same
+; raise Epic ships in the Electric Dreams sample; ~100 MB extra VRAM.
+r.Nanite.MaxNodes=10485760
+r.Nanite.MaxVisibleClusters=10485760
+; TSR anti-flicker tuning (also from Electric Dreams): damps snow sparkle and penumbra
+; shimmer under a moving sun. "Parralax" is the engine's own spelling.
+r.TSR.ShadingRejection.Flickering.FrameRateCap=30
+r.TSR.ShadingRejection.Flickering.MaxParralaxVelocity=2
+r.TSR.ShadingRejection.Flickering.Period=3</code></pre>
 </section>
 
 <section id="slope">
